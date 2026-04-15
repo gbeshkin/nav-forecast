@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tallinn Bay Nav Forecast</title>
-  <meta name="description" content="Навигационный прогноз для района Таллинн — Пирита — Аэгна — Найссаар с маршрутами, историей и блоком навигационных предупреждений." />
+  <meta name="description" content="Navigation forecast for the Tallinn — Pirita — Aegna — Naissaar region with routes, history, and navigational warnings." />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
@@ -13,42 +13,42 @@
   <div class="shell">
     <header class="hero panel">
       <div class="hero-copy">
-        <p class="eyebrow">Tallinn Bay• Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
-        <h1>Навигационный прогноз для Таллиннского залива</h1>
+        <p class="eyebrow">Tallinn Bay • Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
+        <h1>Navigation Forecast for Tallinn Bay</h1>
       </div>
       <div class="hero-actions">
-        <button id="refreshBtn">Обновить сейчас</button>
-        <a href="#history">История</a>
+        <button id="refreshBtn">Refresh now</button>
+        <a href="#history">History</a>
       </div>
     </header>
 
     <section class="top-grid">
       <article class="panel status-panel emphasis-panel">
         <div class="panel-head">
-          <h2>Общий статус района</h2>
-          <span id="updatedAt">Загрузка…</span>
+          <h2>Overall Area Status</h2>
+          <span id="updatedAt">Loading…</span>
         </div>
-        <div id="routeStatus" class="route-status loading">Собираем прогноз…</div>
-        <div id="routeSummary" class="summary-text">Оцениваем волну, ветер и течение по ключевым точкам района.</div>
+        <div id="routeStatus" class="route-status loading">Collecting forecast…</div>
+        <div id="routeSummary" class="summary-text">Evaluating waves, wind, and currents across key points in the area.</div>
         <div id="routeMetrics" class="metric-list"></div>
-        <div class="refresh-note" id="refreshNote">Автообновление включено</div>
+        <div class="refresh-note" id="refreshNote">Auto-refresh enabled</div>
       </article>
 
       <article class="panel vessel-panel">
         <div class="panel-head">
-          <h2>Профиль судна</h2>
-          <span>Меняет пороги оценки</span>
+          <h2>Vessel Profile</h2>
+          <span>Changes evaluation thresholds</span>
         </div>
         <div class="segmented" id="vesselMode">
-          <button class="seg-btn active" data-mode="rib">RIB / малый катер</button>
-          <button class="seg-btn" data-mode="motorboat">Прогулочный катер</button>
-          <button class="seg-btn" data-mode="sailboat">Парусная яхта</button>
+          <button class="seg-btn active" data-mode="rib">RIB / small boat</button>
+          <button class="seg-btn" data-mode="motorboat">Motorboat</button>
+          <button class="seg-btn" data-mode="sailboat">Sailboat</button>
         </div>
         <div id="vesselHint" class="vessel-hint"></div>
         <ul class="check-list compact">
-          <li>Go — комфортное окно для типового выхода.</li>
-          <li>Caution — маршрут возможен, но требует консервативного решения.</li>
-          <li>No-go — лучше перенести выход или сократить маршрут.</li>
+          <li>Go — comfortable conditions for a typical trip.</li>
+          <li>Caution — route is possible but requires conservative decisions.</li>
+          <li>No-go — better to postpone or shorten the route.</li>
         </ul>
       </article>
     </section>
@@ -57,27 +57,25 @@
       <article class="panel quick-card highlight">
         <div class="panel-head">
           <h2>Pirita Marina</h2>
-          <span>Основная точка выхода</span>
+          <span>Main departure point</span>
         </div>
-        <div id="piritaQuick" class="quick-state loading">Загрузка…</div>
+        <div id="piritaQuick" class="quick-state loading">Loading…</div>
         <div id="piritaQuickMetrics" class="mini-grid"></div>
       </article>
 
       <article class="panel quick-card">
         <div class="panel-head">
           <h2>Tallinn Old City Marina</h2>
-          <span>Городской выход</span>
+          <span>City departure</span>
         </div>
-        <div id="oldcityQuick" class="quick-state loading">Загрузка…</div>
+        <div id="oldcityQuick" class="quick-state loading">Loading…</div>
         <div id="oldcityQuickMetrics" class="mini-grid"></div>
       </article>
     </section>
 
-    
-
     <section class="panel map-panel">
       <div class="panel-head">
-        <h2>Карта района</h2>
+        <h2>Area Map</h2>
         <span>Old City • Pirita • Aegna • Naissaar • Rohuneeme</span>
       </div>
       <div id="map"></div>
@@ -86,8 +84,8 @@
     <section class="panel forecast-panel">
       <div class="panel-head stack-mobile">
         <div>
-          <h2>Почасовой прогноз на 24 часа</h2>
-          <span id="hourlyPointLabel">Опорная точка: Pirita Marina</span>
+          <h2>24-Hour Hourly Forecast</h2>
+          <span id="hourlyPointLabel">Reference point: Pirita Marina</span>
         </div>
         <div class="hourly-switch" id="hourlyPointSwitch">
           <button class="hourly-btn active" data-key="pirita">Pirita</button>
@@ -104,48 +102,44 @@
 
     <section id="routes">
       <div class="section-head">
-        <h2>Маршруты</h2>
-        <p>Оценка по наиболее чувствительным участкам маршрута и количеству спокойных часов.</p>
+        <h2>Routes</h2>
+        <p>Evaluation based on the most sensitive route segments and the number of calm hours.</p>
       </div>
       <div id="routeCards" class="cards route-cards"></div>
     </section>
 
     <section id="history">
       <div class="section-head">
-        <h2>История снимков</h2>
+        <h2>Snapshot History</h2>
       </div>
       <div class="history-grid">
         <article class="panel history-panel">
           <div class="panel-head">
-            <h3>Тренд района</h3>
-            <span>Локальная история</span>
+            <h3>Area Trend</h3>
+            <span>Local history</span>
           </div>
           <div class="chart-wrap compact-chart">
             <canvas id="historyChart" height="120"></canvas>
           </div>
-          <div id="historyMeta" class="mini-note">Пока истории нет — появится после нескольких обновлений.</div>
+          <div id="historyMeta" class="mini-note">No history yet — it will appear after several updates.</div>
         </article>
 
         <article class="panel history-panel">
           <div class="panel-head">
-            <h3>Последние snapshots</h3>
-            <span>До 12 записей</span>
+            <h3>Latest Snapshots</h3>
+            <span>Up to 12 entries</span>
           </div>
-          <div id="historyTable" class="history-table empty-state">История ещё не накоплена.</div>
+          <div id="historyTable" class="history-table empty-state">No history accumulated yet.</div>
         </article>
       </div>
     </section>
 
     <section>
       <div class="section-head">
-        <h2>Точки прогноза</h2>
-        <p>Marine-параметры тянутся по координатам, поэтому это удобно для статического деплоя и быстрой доработки.</p>
+        <h2>Forecast Points</h2>
       </div>
       <div id="cards" class="cards"></div>
     </section>
-
-    
-    
   </div>
 
   <template id="cardTemplate">
@@ -156,16 +150,16 @@
       </div>
       <div class="point-note"></div>
       <div class="badge-row">
-        <span class="badge point-badge">Загрузка</span>
+        <span class="badge point-badge">Loading</span>
       </div>
       <div class="metric-grid">
-        <div><span>Волна сейчас</span><strong class="wave-now">—</strong></div>
-        <div><span>Макс. волна 24ч</span><strong class="wave-max">—</strong></div>
-        <div><span>Темп. воды</span><strong class="sea-temp">—</strong></div>
-        <div><span>Течение</span><strong class="current-speed">—</strong></div>
+        <div><span>Wave now</span><strong class="wave-now">—</strong></div>
+        <div><span>Max wave 24h</span><strong class="wave-max">—</strong></div>
+        <div><span>Water temp</span><strong class="sea-temp">—</strong></div>
+        <div><span>Current</span><strong class="current-speed">—</strong></div>
       </div>
-      <div class="mini-note current-direction">Направление течения: —</div>
-      <div class="mini-note wind-line">Ветер: —</div>
+      <div class="mini-note current-direction">Current direction: —</div>
+      <div class="mini-note wind-line">Wind: —</div>
     </article>
   </template>
 
@@ -177,10 +171,10 @@
       </div>
       <div class="mini-note route-description"></div>
       <div class="metric-grid">
-        <div><span>Макс. волна</span><strong class="route-wave">—</strong></div>
-        <div><span>Макс. ветер</span><strong class="route-wind">—</strong></div>
-        <div><span>Течение</span><strong class="route-current">—</strong></div>
-        <div><span>Спокойных часов</span><strong class="route-window">—</strong></div>
+        <div><span>Max wave</span><strong class="route-wave">—</strong></div>
+        <div><span>Max wind</span><strong class="route-wind">—</strong></div>
+        <div><span>Current</span><strong class="route-current">—</strong></div>
+        <div><span>Calm hours</span><strong class="route-window">—</strong></div>
       </div>
     </article>
   </template>
