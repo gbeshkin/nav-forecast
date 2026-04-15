@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tallinn Bay Nav Forecast v4</title>
+  <title>Tallinn Bay Nav Forecast</title>
   <meta name="description" content="Навигационный прогноз для района Таллинн — Пирита — Аэгна — Найссаар с маршрутами, историей и блоком навигационных предупреждений." />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -13,18 +13,12 @@
   <div class="shell">
     <header class="hero panel">
       <div class="hero-copy">
-        <p class="eyebrow">Tallinn Bay v4 • Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
+        <p class="eyebrow">Tallinn Bay• Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
         <h1>Навигационный прогноз для Таллиннского залива</h1>
-        <p class="lead">
-          Версия 4: режимы судна, go / caution / no-go, ключевые маршруты, история снимков за 72 часа,
-          почасовой прогноз и живой блок навигационных предупреждений для района Таллинн — Пирита — Аэгна — Найссаар.
-        </p>
       </div>
       <div class="hero-actions">
         <button id="refreshBtn">Обновить сейчас</button>
-        <a href="#warnings">Warnings</a>
         <a href="#history">История</a>
-        <a href="#sources">Источники</a>
       </div>
     </header>
 
@@ -79,19 +73,7 @@
       </article>
     </section>
 
-    <section id="warnings" class="panel warnings-panel">
-      <div class="panel-head stack-mobile">
-        <div>
-          <h2>Навигационные предупреждения</h2>
-          <span>Блок рассчитан на деплой с Vercel / serverless proxy</span>
-        </div>
-        <div class="warning-actions">
-          <a href="https://gis.transpordiamet.ee/navhoiatused/en.html" target="_blank" rel="noreferrer">Открыть официальный сервис</a>
-        </div>
-      </div>
-      <div id="warningsSummary" class="summary-text">Пробуем получить актуальные предупреждения…</div>
-      <div id="warningsList" class="warning-list loading">Загрузка…</div>
-    </section>
+    
 
     <section class="panel map-panel">
       <div class="panel-head">
@@ -131,7 +113,6 @@
     <section id="history">
       <div class="section-head">
         <h2>История снимков</h2>
-        <p>v4 хранит локальные hourly snapshots в браузере пользователя за последние 72 часа.</p>
       </div>
       <div class="history-grid">
         <article class="panel history-panel">
@@ -163,36 +144,8 @@
       <div id="cards" class="cards"></div>
     </section>
 
-    <section id="sources" class="panel sources">
-      <div class="panel-head">
-        <h2>Источники и деплой</h2>
-      </div>
-      <div class="sources-grid">
-        <div>
-          <h3>Официальные источники</h3>
-          <ul>
-            <li><a href="https://www.ilmateenistus.ee/mobile-pages/marine-weather/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Marine weather</a></li>
-            <li><a href="https://www.ilmateenistus.ee/meri/vaatlusandmed/pirita/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Pirita observation</a></li>
-            <li><a href="https://gis.transpordiamet.ee/navhoiatused/en.html" target="_blank" rel="noreferrer">Transpordiamet — Navigational Warnings</a></li>
-            <li><a href="https://www.transpordiamet.ee/en/maritime-safety" target="_blank" rel="noreferrer">Transpordiamet — Maritime safety</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3>Где лучше развернуть</h3>
-          <p>
-            Для v4 оптимален <strong>Vercel</strong>: статический фронт плюс serverless-функция для warnings.
-            Если warnings не критичны, можно оставить чистый статический деплой на Cloudflare Pages или GitHub Pages.
-          </p>
-        </div>
-        <div>
-          <h3>Когда нужен полноценный backend</h3>
-          <p>
-            Если захочешь централизованную историю, Telegram-уведомления, свои пороги по суднам,
-            кэширование и пуш-алерты, переходи на Vercel cron / Cloudflare Workers / Railway.
-          </p>
-        </div>
-      </div>
-    </section>
+    
+    
   </div>
 
   <template id="cardTemplate">
