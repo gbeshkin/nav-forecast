@@ -40,13 +40,16 @@ const HOURLY_VARS = [
 ].join(',');
 const WEATHER_HOURLY = ['wind_speed_10m', 'wind_direction_10m'].join(',');
 const REFRESH_MS = 60 * 60 * 1000;
+const HISTORY_KEY = 'tallinn-bay-nav-forecast-v4-history';
+const HISTORY_LIMIT = 72;
 
 let map;
-let chartCanvas;
+let hourlyCanvas;
+let historyCanvas;
 let refreshTimer;
 let allResults = [];
 let selectedHourlyKey = 'pirita';
-let selectedMode = 'motorboat';
+let selectedMode = 'rib';
 
 function initMap() {
   map = L.map('map', { zoomControl: true }).setView([59.525, 24.73], 10);
@@ -55,13 +58,8 @@ function initMap() {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  [
-    ['oldcity', 'pirita'],
-    ['pirita', 'aegna'],
-    ['pirita', 'rohuneeme', 'naissaar'],
-    ['oldcity', 'pirita', 'aegna']
-  ].forEach((route) => {
-    const coords = route.map((key) => {
+  routes.forEach((route) => {
+    const coords = route.pointKeys.map((key) => {
       const p = points.find((x) => x.key === key);
       return [p.lat, p.lon];
     });
@@ -214,7 +212,7 @@ function renderSummary(results) {
   updatedAt.textContent = times.length ? `Обновлено: ${times.at(-1).replace('T', ' ')}` : 'Обновлено';
 }
 
-function renderQuickCard(targetId, result, title) {
+function renderQuickCard(targetId, result) {
   const state = document.getElementById(targetId);
   const metrics = document.getElementById(`${targetId}Metrics`);
   const risk = getRisk({ waveHeight: result.currentWave, currentVelocity: result.currentVelocity, windSpeed: result.windSpeed });
@@ -269,26 +267,26 @@ function renderRoutes(resultsMap) {
   });
 }
 
-function drawHourlyChart(result) {
-  chartCanvas = chartCanvas || document.getElementById('hourlyChart');
-  const ctx = chartCanvas.getContext('2d');
+function setupCanvas(canvas, targetHeight = 240) {
+  const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const cssWidth = chartCanvas.clientWidth || chartCanvas.parentElement.clientWidth;
-  const cssHeight = 240;
-  chartCanvas.width = cssWidth * dpr;
-  chartCanvas.height = cssHeight * dpr;
+  const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth;
+  canvas.width = cssWidth * dpr;
+  canvas.height = targetHeight * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, cssWidth, cssHeight);
+  ctx.clearRect(0, 0, cssWidth, targetHeight);
+  return { ctx, cssWidth, cssHeight: targetHeight };
+}
 
-  const waves = (result.marineHourly.wave_height || []).slice(0, 24);
-  const winds = (result.weatherHourly.wind_speed_10m || []).slice(0, 24);
-  const labels = (result.marineHourly.time || []).slice(0, 24).map((t) => t.slice(11, 16));
-  const maxValue = Math.max(1.4, ...waves, ...(winds.map((w) => w / 10)));
+function drawLineChart(canvas, lines, labels, legend) {
+  const { ctx, cssWidth, cssHeight } = setupCanvas(canvas, 240);
   const margin = { top: 22, right: 18, bottom: 34, left: 38 };
   const width = cssWidth - margin.left - margin.right;
   const height = cssHeight - margin.top - margin.bottom;
+  const values = lines.flatMap((line) => line.values.map((v) => v ?? 0));
+  const maxValue = Math.max(1, ...values);
   const x = (index) => margin.left + (width * index) / Math.max(labels.length - 1, 1);
-  const y = (value) => margin.top + height - (value / maxValue) * height;
+  const y = (value) => margin.top + height - ((value ?? 0) / maxValue) * height;
 
   ctx.strokeStyle = 'rgba(255,255,255,0.16)';
   ctx.lineWidth = 1;
@@ -306,30 +304,37 @@ function drawHourlyChart(result) {
     if (index % 3 === 0) ctx.fillText(label, x(index) - 12, cssHeight - 8);
   });
 
-  ctx.strokeStyle = '#6fb1ff';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  waves.forEach((value, index) => {
-    const px = x(index);
-    const py = y(value ?? 0);
-    if (index === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+  lines.forEach((line) => {
+    ctx.strokeStyle = line.color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    line.values.forEach((value, index) => {
+      const px = x(index);
+      const py = y(value);
+      if (index === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
   });
-  ctx.stroke();
 
-  ctx.strokeStyle = '#ffbf5a';
-  ctx.beginPath();
-  winds.forEach((value, index) => {
-    const px = x(index);
-    const py = y((value ?? 0) / 10);
-    if (index === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+  legend.forEach((item, index) => {
+    ctx.fillStyle = item.color;
+    ctx.fillText(item.text, margin.left + index * 150, 14);
   });
-  ctx.stroke();
+}
 
-  ctx.fillStyle = '#eaf2ff';
-  ctx.fillText('Синий — волна (м)', margin.left, 14);
-  ctx.fillText('Жёлтый — ветер / 10', margin.left + 130, 14);
+function drawHourlyChart(result) {
+  hourlyCanvas = hourlyCanvas || document.getElementById('hourlyChart');
+  const waves = (result.marineHourly.wave_height || []).slice(0, 24);
+  const winds = (result.weatherHourly.wind_speed_10m || []).slice(0, 24).map((w) => (w ?? 0) / 10);
+  const labels = (result.marineHourly.time || []).slice(0, 24).map((t) => t.slice(11, 16));
+  drawLineChart(hourlyCanvas, [
+    { color: '#6fb1ff', values: waves },
+    { color: '#ffbf5a', values: winds }
+  ], labels, [
+    { color: '#6fb1ff', text: 'Синий — волна (м)' },
+    { color: '#ffbf5a', text: 'Жёлтый — ветер / 10' }
+  ]);
 }
 
 function renderHourlyTable(result) {
@@ -367,6 +372,139 @@ function updateRefreshNote() {
   note.textContent = `Следующее автообновление около ${next.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
+function readHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveHistoryEntry(entry) {
+  const history = readHistory();
+  const filtered = history.filter((item) => item.timestamp !== entry.timestamp);
+  filtered.push(entry);
+  filtered.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const trimmed = filtered.slice(-HISTORY_LIMIT);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+  return trimmed;
+}
+
+function makeHistoryEntry(results) {
+  const maxWave = Math.max(...results.map((r) => r.maxWave24h ?? 0));
+  const maxWind = Math.max(...results.map((r) => r.maxWind24h ?? 0));
+  const maxCurrent = Math.max(...results.map((r) => r.maxCurrent24h ?? 0));
+  const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind });
+  const pirita = results.find((r) => r.point.key === 'pirita');
+  return {
+    timestamp: new Date().toISOString(),
+    mode: selectedMode,
+    regionRisk: risk.key,
+    regionLabel: risk.label,
+    maxWave,
+    maxWind,
+    maxCurrent,
+    piritaWave: pirita?.currentWave ?? null,
+    piritaWind: pirita?.windSpeed ?? null
+  };
+}
+
+function riskClass(key) {
+  return key === 'good' ? 'inline-good' : key === 'warn' ? 'inline-warn' : 'inline-bad';
+}
+
+function renderHistory() {
+  const history = readHistory().slice(-12).reverse();
+  const historyTable = document.getElementById('historyTable');
+  const historyMeta = document.getElementById('historyMeta');
+  if (!history.length) {
+    historyTable.className = 'history-table empty-state';
+    historyTable.textContent = 'История ещё не накоплена.';
+    historyMeta.textContent = 'Пока истории нет — появится после нескольких обновлений.';
+    drawHistoryChart([]);
+    return;
+  }
+
+  historyTable.className = 'history-table';
+  historyTable.innerHTML = history.map((item) => `
+    <div class="history-row">
+      <div>
+        <div class="time">${item.timestamp.replace('T', ' ').slice(0, 16)}</div>
+        <strong class="${riskClass(item.regionRisk)}">${item.regionLabel}</strong>
+      </div>
+      <div><span>Волна</span><strong>${formatNumber(item.maxWave, 'м')}</strong></div>
+      <div><span>Ветер</span><strong>${formatNumber(item.maxWind, 'км/ч')}</strong></div>
+      <div><span>Pirita</span><strong>${formatNumber(item.piritaWave, 'м')}</strong></div>
+    </div>
+  `).join('');
+  historyMeta.textContent = `Сохранено ${readHistory().length} snapshot(ов) за последние до 72 часов в этом браузере.`;
+  drawHistoryChart(readHistory());
+}
+
+function drawHistoryChart(history) {
+  historyCanvas = historyCanvas || document.getElementById('historyChart');
+  if (!history.length) {
+    const { ctx, cssWidth, cssHeight } = setupCanvas(historyCanvas, 220);
+    ctx.fillStyle = '#9fb2d7';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('История появится после первого snapshot.', 16, cssHeight / 2);
+    return;
+  }
+  const trimmed = history.slice(-24);
+  const labels = trimmed.map((item) => item.timestamp.slice(11, 16));
+  drawLineChart(historyCanvas, [
+    { color: '#6fb1ff', values: trimmed.map((item) => item.maxWave ?? 0) },
+    { color: '#a68cff', values: trimmed.map((item) => (item.maxWind ?? 0) / 10) }
+  ], labels, [
+    { color: '#6fb1ff', text: 'Синий — max wave' },
+    { color: '#a68cff', text: 'Фиолетовый — max wind / 10' }
+  ]);
+}
+
+function renderWarnings(items, meta = {}) {
+  const summary = document.getElementById('warningsSummary');
+  const list = document.getElementById('warningsList');
+  if (!items.length) {
+    summary.textContent = meta.message || 'Предупреждения не найдены. Всё равно проверь официальный сервис перед выходом.';
+    list.className = 'warning-list';
+    list.innerHTML = `
+      <div class="warning-item warning-fallback">
+        <h4>Нет активных карточек warnings</h4>
+        <p>Открой официальный сервис Transpordiamet и проверь Notices to Mariners перед выходом.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const activeCount = items.filter((item) => !item.ended).length;
+  summary.textContent = `${meta.source || 'Warnings proxy'}: ${items.length} карточек, активных сейчас — ${activeCount}.`;
+  list.className = 'warning-list';
+  list.innerHTML = items.map((item) => `
+    <div class="warning-item ${item.ended ? '' : 'warning-active'}">
+      <h4>${item.title}</h4>
+      <div class="warning-meta">${[item.period, item.area].filter(Boolean).join(' • ') || 'Без уточнения периода'}</div>
+      <p>${item.text || 'Смотри официальный источник для полной формулировки.'}</p>
+    </div>
+  `).join('');
+}
+
+async function loadWarnings() {
+  const list = document.getElementById('warningsList');
+  list.className = 'warning-list loading';
+  list.textContent = 'Загрузка…';
+  try {
+    const response = await fetch('/api/warnings');
+    if (!response.ok) throw new Error(`Proxy status ${response.status}`);
+    const payload = await response.json();
+    renderWarnings(payload.items || [], payload.meta || {});
+  } catch (error) {
+    console.warn('Warnings proxy unavailable', error);
+    renderWarnings([], {
+      message: 'Serverless-proxy недоступен. На статическом хостинге без backend используй только официальную страницу warnings.'
+    });
+  }
+}
+
 function renderAll(results) {
   allResults = results;
   const cards = document.getElementById('cards');
@@ -379,6 +517,8 @@ function renderAll(results) {
   renderQuickCard('oldcityQuick', resultsMap.get('oldcity'));
   renderHourlyByKey(selectedHourlyKey);
   updateRefreshNote();
+  saveHistoryEntry(makeHistoryEntry(results));
+  renderHistory();
 }
 
 async function loadAll() {
@@ -404,11 +544,17 @@ async function loadAll() {
 
 function setupAutoRefresh() {
   clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadAll, REFRESH_MS);
+  refreshTimer = setInterval(() => {
+    loadAll();
+    loadWarnings();
+  }, REFRESH_MS);
 }
 
 function bindUi() {
-  document.getElementById('refreshBtn').addEventListener('click', loadAll);
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadAll();
+    loadWarnings();
+  });
   document.querySelectorAll('.hourly-btn').forEach((btn) => {
     btn.addEventListener('click', () => renderHourlyByKey(btn.dataset.key));
   });
@@ -422,6 +568,7 @@ function bindUi() {
   });
   window.addEventListener('resize', () => {
     if (allResults.length) renderHourlyByKey(selectedHourlyKey);
+    renderHistory();
   });
 }
 
@@ -429,6 +576,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initMap();
   bindUi();
   document.getElementById('vesselHint').textContent = vesselProfiles[selectedMode].hint;
+  renderHistory();
   loadAll();
+  loadWarnings();
   setupAutoRefresh();
 });

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tallinn Bay Nav Forecast v3</title>
+  <title>Tallinn Bay Nav Forecast v4</title>
+  <meta name="description" content="Навигационный прогноз для района Таллинн — Пирита — Аэгна — Найссаар с маршрутами, историей и блоком навигационных предупреждений." />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
@@ -12,24 +13,25 @@
   <div class="shell">
     <header class="hero panel">
       <div class="hero-copy">
-        <p class="eyebrow">Tallinn Bay v3 • Pirita • Aegna • Naissaar • Rohuneeme</p>
-        <h1>Навигационный прогноз для района Таллинн — Пирита — Аэгна — Найссаар</h1>
+        <p class="eyebrow">Tallinn Bay v4 • Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
+        <h1>Навигационный прогноз для Таллиннского залива</h1>
         <p class="lead">
-          Версия 3 для прогулочных маршрутов и маломерных судов. Быстрый статус выхода, режимы для катера и яхты,
-          карта района, почасовое окно на 24 часа и ссылки на официальные предупреждения.
+          Версия 4: режимы судна, go / caution / no-go, ключевые маршруты, история снимков за 72 часа,
+          почасовой прогноз и живой блок навигационных предупреждений для района Таллинн — Пирита — Аэгна — Найссаар.
         </p>
       </div>
       <div class="hero-actions">
         <button id="refreshBtn">Обновить сейчас</button>
-        <a href="#routes">Маршруты</a>
+        <a href="#warnings">Warnings</a>
+        <a href="#history">История</a>
         <a href="#sources">Источники</a>
       </div>
     </header>
 
     <section class="top-grid">
-      <article class="panel status-panel">
+      <article class="panel status-panel emphasis-panel">
         <div class="panel-head">
-          <h2>Статус выхода</h2>
+          <h2>Общий статус района</h2>
           <span id="updatedAt">Загрузка…</span>
         </div>
         <div id="routeStatus" class="route-status loading">Собираем прогноз…</div>
@@ -50,9 +52,9 @@
         </div>
         <div id="vesselHint" class="vessel-hint"></div>
         <ul class="check-list compact">
-          <li>Пороги влияют на общий статус и маршруты.</li>
-          <li>Оценка эвристическая, не заменяет решение капитана.</li>
-          <li>Перед выходом всегда сверяйся с официальными предупреждениями.</li>
+          <li>Go — комфортное окно для типового выхода.</li>
+          <li>Caution — маршрут возможен, но требует консервативного решения.</li>
+          <li>No-go — лучше перенести выход или сократить маршрут.</li>
         </ul>
       </article>
     </section>
@@ -77,6 +79,20 @@
       </article>
     </section>
 
+    <section id="warnings" class="panel warnings-panel">
+      <div class="panel-head stack-mobile">
+        <div>
+          <h2>Навигационные предупреждения</h2>
+          <span>Блок рассчитан на деплой с Vercel / serverless proxy</span>
+        </div>
+        <div class="warning-actions">
+          <a href="https://gis.transpordiamet.ee/navhoiatused/en.html" target="_blank" rel="noreferrer">Открыть официальный сервис</a>
+        </div>
+      </div>
+      <div id="warningsSummary" class="summary-text">Пробуем получить актуальные предупреждения…</div>
+      <div id="warningsList" class="warning-list loading">Загрузка…</div>
+    </section>
+
     <section class="panel map-panel">
       <div class="panel-head">
         <h2>Карта района</h2>
@@ -88,13 +104,14 @@
     <section class="panel forecast-panel">
       <div class="panel-head stack-mobile">
         <div>
-          <h2>Почасовое окно на 24 часа</h2>
+          <h2>Почасовой прогноз на 24 часа</h2>
           <span id="hourlyPointLabel">Опорная точка: Pirita Marina</span>
         </div>
         <div class="hourly-switch" id="hourlyPointSwitch">
           <button class="hourly-btn active" data-key="pirita">Pirita</button>
           <button class="hourly-btn" data-key="oldcity">Old City</button>
           <button class="hourly-btn" data-key="aegna">Aegna</button>
+          <button class="hourly-btn" data-key="naissaar">Naissaar</button>
         </div>
       </div>
       <div class="chart-wrap">
@@ -106,19 +123,76 @@
     <section id="routes">
       <div class="section-head">
         <h2>Маршруты</h2>
-        <p>Окно 24 часа и оценка по наиболее чувствительным участкам маршрута.</p>
+        <p>Оценка по наиболее чувствительным участкам маршрута и количеству спокойных часов.</p>
       </div>
       <div id="routeCards" class="cards route-cards"></div>
+    </section>
+
+    <section id="history">
+      <div class="section-head">
+        <h2>История снимков</h2>
+        <p>v4 хранит локальные hourly snapshots в браузере пользователя за последние 72 часа.</p>
+      </div>
+      <div class="history-grid">
+        <article class="panel history-panel">
+          <div class="panel-head">
+            <h3>Тренд района</h3>
+            <span>Локальная история</span>
+          </div>
+          <div class="chart-wrap compact-chart">
+            <canvas id="historyChart" height="120"></canvas>
+          </div>
+          <div id="historyMeta" class="mini-note">Пока истории нет — появится после нескольких обновлений.</div>
+        </article>
+
+        <article class="panel history-panel">
+          <div class="panel-head">
+            <h3>Последние snapshots</h3>
+            <span>До 12 записей</span>
+          </div>
+          <div id="historyTable" class="history-table empty-state">История ещё не накоплена.</div>
+        </article>
+      </div>
     </section>
 
     <section>
       <div class="section-head">
         <h2>Точки прогноза</h2>
+        <p>Marine-параметры тянутся по координатам, поэтому это удобно для статического деплоя и быстрой доработки.</p>
       </div>
       <div id="cards" class="cards"></div>
     </section>
 
-    
+    <section id="sources" class="panel sources">
+      <div class="panel-head">
+        <h2>Источники и деплой</h2>
+      </div>
+      <div class="sources-grid">
+        <div>
+          <h3>Официальные источники</h3>
+          <ul>
+            <li><a href="https://www.ilmateenistus.ee/mobile-pages/marine-weather/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Marine weather</a></li>
+            <li><a href="https://www.ilmateenistus.ee/meri/vaatlusandmed/pirita/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Pirita observation</a></li>
+            <li><a href="https://gis.transpordiamet.ee/navhoiatused/en.html" target="_blank" rel="noreferrer">Transpordiamet — Navigational Warnings</a></li>
+            <li><a href="https://www.transpordiamet.ee/en/maritime-safety" target="_blank" rel="noreferrer">Transpordiamet — Maritime safety</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Где лучше развернуть</h3>
+          <p>
+            Для v4 оптимален <strong>Vercel</strong>: статический фронт плюс serverless-функция для warnings.
+            Если warnings не критичны, можно оставить чистый статический деплой на Cloudflare Pages или GitHub Pages.
+          </p>
+        </div>
+        <div>
+          <h3>Когда нужен полноценный backend</h3>
+          <p>
+            Если захочешь централизованную историю, Telegram-уведомления, свои пороги по суднам,
+            кэширование и пуш-алерты, переходи на Vercel cron / Cloudflare Workers / Railway.
+          </p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <template id="cardTemplate">
