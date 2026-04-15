@@ -114,41 +114,11 @@
     <section>
       <div class="section-head">
         <h2>Точки прогноза</h2>
-        <p>Данные тянутся по координатам. Это удобно для MVP и статического деплоя.</p>
       </div>
       <div id="cards" class="cards"></div>
     </section>
 
-    <section id="sources" class="panel sources">
-      <div class="panel-head">
-        <h2>Источники и деплой</h2>
-      </div>
-      <div class="sources-grid">
-        <div>
-          <h3>Официальные источники</h3>
-          <ul>
-            <li><a href="https://www.ilmateenistus.ee/mobile-pages/marine-weather/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Marine weather</a></li>
-            <li><a href="https://www.ilmateenistus.ee/meri/vaatlusandmed/pirita/?lang=en" target="_blank" rel="noreferrer">Ilmateenistus — Pirita observation</a></li>
-            <li><a href="https://gis.transpordiamet.ee/navhoiatused/en.html" target="_blank" rel="noreferrer">Transpordiamet — Navigational Warnings</a></li>
-            <li><a href="https://www.transpordiamet.ee/en" target="_blank" rel="noreferrer">Transpordiamet — navigational information hub</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3>Где размещать</h3>
-          <p>
-            Для этой версии достаточно Cloudflare Pages, Vercel или GitHub Pages. Сайт сам тянет актуальные данные в браузере и умеет
-            автообновляться раз в час.
-          </p>
-        </div>
-        <div>
-          <h3>Когда переходить на backend</h3>
-          <p>
-            Если захочешь историю, hourly snapshots, свои предупреждения или Telegram-алерты, лучше переходить на Vercel с cron
-            или Cloudflare Workers.
-          </p>
-        </div>
-      </div>
-    </section>
+    
   </div>
 
   <template id="cardTemplate">
