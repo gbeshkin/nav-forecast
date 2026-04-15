@@ -1,32 +1,32 @@
 const points = [
-  { key: 'oldcity', name: 'Tallinn Old City Marina', lat: 59.4446, lon: 24.7546, note: 'Городская марина у пассажирского и туристического трафика.' },
-  { key: 'pirita', name: 'Pirita Marina', lat: 59.4714, lon: 24.8350, note: 'Ключевая точка выхода для катеров и яхт.' },
-  { key: 'aegna', name: 'Aegna South', lat: 59.5750, lon: 24.7590, note: 'Подход к Аэгна со стороны Таллиннского залива.' },
-  { key: 'naissaar', name: 'Naissaar South', lat: 59.5440, lon: 24.5010, note: 'Южная часть Найссаара, чувствительная к ветру и волне.' },
-  { key: 'rohuneeme', name: 'Rohuneeme', lat: 59.5650, lon: 24.8420, note: 'Северо-восточный край района, полезен для общей картины.' }
+  { key: 'oldcity', name: 'Tallinn Old City Marina', lat: 59.4446, lon: 24.7546, note: 'City marina with passenger and tourist traffic.' },
+  { key: 'pirita', name: 'Pirita Marina', lat: 59.4714, lon: 24.8350, note: 'Key departure point for boats and yachts.' },
+  { key: 'aegna', name: 'Aegna South', lat: 59.5750, lon: 24.7590, note: 'Approach to Aegna from Tallinn Bay.' },
+  { key: 'naissaar', name: 'Naissaar South', lat: 59.5440, lon: 24.5010, note: 'Southern Naissaar, sensitive to wind and waves.' },
+  { key: 'rohuneeme', name: 'Rohuneeme', lat: 59.5650, lon: 24.8420, note: 'Northeast edge of the area, useful for overall conditions.' }
 ];
 
 const routes = [
-  { name: 'Pirita → Aegna', description: 'Типовой короткий выход из Пирита на Аэгну.', pointKeys: ['pirita', 'aegna'] },
-  { name: 'Old City → Pirita', description: 'Городской участок вдоль берега с частым трафиком.', pointKeys: ['oldcity', 'pirita'] },
-  { name: 'Pirita → Naissaar', description: 'Более открытый участок. К ветру и волне чувствителен сильнее.', pointKeys: ['pirita', 'naissaar', 'rohuneeme'] },
-  { name: 'Old City → Aegna', description: 'Маршрут из центра в сторону острова через открытую воду.', pointKeys: ['oldcity', 'pirita', 'aegna'] }
+  { name: 'Pirita → Aegna', description: 'Typical short trip from Pirita to Aegna.', pointKeys: ['pirita', 'aegna'] },
+  { name: 'Old City → Pirita', description: 'Coastal city segment with frequent traffic.', pointKeys: ['oldcity', 'pirita'] },
+  { name: 'Pirita → Naissaar', description: 'More open water. More sensitive to wind and waves.', pointKeys: ['pirita', 'naissaar', 'rohuneeme'] },
+  { name: 'Old City → Aegna', description: 'Route from city center towards the island across open water.', pointKeys: ['oldcity', 'pirita', 'aegna'] }
 ];
 
 const vesselProfiles = {
   rib: {
-    label: 'RIB / малый катер',
-    hint: 'Самый строгий профиль. Подходит для небольшого катера, прогулочного выхода и более консервативной оценки.',
+    label: 'RIB / small boat',
+    hint: 'Strictest profile. Suitable for small boats and conservative trips.',
     thresholds: { goodWave: 0.35, badWave: 0.75, goodWind: 6, badWind: 10, goodCurrent: 0.9, badCurrent: 1.8 }
   },
   motorboat: {
-    label: 'Прогулочный катер',
-    hint: 'Сбалансированный режим для обычного моторного судна в хорошей погоде.',
+    label: 'Motorboat',
+    hint: 'Balanced mode for typical motorboats in good weather.',
     thresholds: { goodWave: 0.5, badWave: 1.0, goodWind: 7.5, badWind: 12, goodCurrent: 1.2, badCurrent: 2.2 }
   },
   sailboat: {
-    label: 'Парусная яхта',
-    hint: 'Чуть мягче по волне, но при сильном ветре всё равно быстро уходит в caution / no-go.',
+    label: 'Sailboat',
+    hint: 'More tolerant to waves, but strong wind still leads to caution / no-go.',
     thresholds: { goodWave: 0.65, badWave: 1.25, goodWind: 8.5, badWind: 14, goodCurrent: 1.2, badCurrent: 2.4 }
   }
 };
@@ -90,14 +90,17 @@ function getProfile() {
 function getRisk(values) {
   const { waveHeight = 0, currentVelocity = 0, windSpeed = 0 } = values;
   const t = getProfile().thresholds;
+
   if (waveHeight > t.badWave || currentVelocity > t.badCurrent || windSpeed > t.badWind) {
-    return { key: 'bad', label: 'No-go / неблагоприятно' };
+    return { key: 'bad', label: 'No-go' };
   }
   if (waveHeight > t.goodWave || currentVelocity > t.goodCurrent || windSpeed > t.goodWind) {
-    return { key: 'warn', label: 'Caution / с осторожностью' };
+    return { key: 'warn', label: 'Caution' };
   }
-  return { key: 'good', label: 'Go / относительно спокойно' };
+  return { key: 'good', label: 'Go' };
 }
+
+
 
 async function fetchMarinePoint(point) {
   const marineParams = new URLSearchParams({
