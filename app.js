@@ -10,23 +10,23 @@ const routes = [
   { name: 'Pirita → Aegna', description: 'Typical short trip from Pirita to Aegna.', pointKeys: ['pirita', 'aegna'] },
   { name: 'Old City → Pirita', description: 'Coastal city segment with frequent traffic.', pointKeys: ['oldcity', 'pirita'] },
   { name: 'Pirita → Naissaar', description: 'More open water. More sensitive to wind and waves.', pointKeys: ['pirita', 'naissaar', 'rohuneeme'] },
-  { name: 'Old City → Aegna', description: 'Route from city center towards the island across open water.', pointKeys: ['oldcity', 'pirita', 'aegna'] }
+  { name: 'Old City → Aegna', description: 'Route from the city center towards the island across open water.', pointKeys: ['oldcity', 'pirita', 'aegna'] }
 ];
 
 const vesselProfiles = {
   rib: {
     label: 'RIB / small boat',
-    hint: 'Strictest profile. Suitable for small boats and conservative trips.',
+    hint: 'The strictest profile. Suitable for a small boat, a casual trip, and a more conservative assessment.',
     thresholds: { goodWave: 0.35, badWave: 0.75, goodWind: 6, badWind: 10, goodCurrent: 0.9, badCurrent: 1.8 }
   },
   motorboat: {
     label: 'Motorboat',
-    hint: 'Balanced mode for typical motorboats in good weather.',
+    hint: 'Balanced mode for a typical motor vessel in good weather.',
     thresholds: { goodWave: 0.5, badWave: 1.0, goodWind: 7.5, badWind: 12, goodCurrent: 1.2, badCurrent: 2.2 }
   },
   sailboat: {
     label: 'Sailboat',
-    hint: 'More tolerant to waves, but strong wind still leads to caution / no-go.',
+    hint: 'A bit more tolerant to waves, but strong wind still quickly shifts conditions to caution / no-go.',
     thresholds: { goodWave: 0.65, badWave: 1.25, goodWind: 8.5, badWind: 14, goodCurrent: 1.2, badCurrent: 2.4 }
   }
 };
@@ -99,8 +99,6 @@ function getRisk(values) {
   }
   return { key: 'good', label: 'Go' };
 }
-
-
 
 async function fetchMarinePoint(point) {
   const marineParams = new URLSearchParams({
@@ -178,12 +176,12 @@ function renderPointCard(result) {
   badge.textContent = risk.label;
   badge.classList.add(risk.key);
 
-  node.querySelector('.wave-now').textContent = formatNumber(result.currentWave, 'м');
-  node.querySelector('.wave-max').textContent = formatNumber(result.maxWave24h, 'м');
+  node.querySelector('.wave-now').textContent = formatNumber(result.currentWave, 'm');
+  node.querySelector('.wave-max').textContent = formatNumber(result.maxWave24h, 'm');
   node.querySelector('.sea-temp').textContent = formatNumber(result.seaTemp, '°C');
-  node.querySelector('.current-speed').textContent = formatNumber(result.currentVelocity, 'км/ч');
-  node.querySelector('.current-direction').textContent = `Направление течения: ${directionToText(result.currentDirection)}`;
-  node.querySelector('.wind-line').textContent = `Ветер: ${formatNumber(result.windSpeed, 'км/ч')} • ${directionToText(result.windDirection)}`;
+  node.querySelector('.current-speed').textContent = formatNumber(result.currentVelocity, 'km/h');
+  node.querySelector('.current-direction').textContent = `Current direction: ${directionToText(result.currentDirection)}`;
+  node.querySelector('.wind-line').textContent = `Wind: ${formatNumber(result.windSpeed, 'km/h')} • ${directionToText(result.windDirection)}`;
 
   return node;
 }
@@ -202,17 +200,17 @@ function renderSummary(results) {
 
   routeStatus.className = `route-status ${risk.key}`;
   routeStatus.textContent = risk.label;
-  routeSummary.textContent = `${getProfile().label}: сводная оценка по району на основе максимальной волны, ветра и течения за 24 часа.`;
+  routeSummary.textContent = `${getProfile().label}: overall area assessment based on the maximum wave, wind, and current over the next 24 hours.`;
 
   routeMetrics.innerHTML = `
-    <div><span>Макс. волна 24ч</span><strong>${formatNumber(maxWave, 'м')}</strong></div>
-    <div><span>Макс. ветер 24ч</span><strong>${formatNumber(maxWind, 'км/ч')}</strong></div>
-    <div><span>Макс. течение 24ч</span><strong>${formatNumber(maxCurrent, 'км/ч')}</strong></div>
-    <div><span>Средняя темп. воды</span><strong>${formatNumber(avgTemp, '°C')}</strong></div>
+    <div><span>Max wave 24h</span><strong>${formatNumber(maxWave, 'm')}</strong></div>
+    <div><span>Max wind 24h</span><strong>${formatNumber(maxWind, 'km/h')}</strong></div>
+    <div><span>Max current 24h</span><strong>${formatNumber(maxCurrent, 'km/h')}</strong></div>
+    <div><span>Average water temp</span><strong>${formatNumber(avgTemp, '°C')}</strong></div>
   `;
 
   const times = results.map((r) => r.currentTime).filter(Boolean).sort();
-  updatedAt.textContent = times.length ? `Обновлено: ${times.at(-1).replace('T', ' ')}` : 'Обновлено';
+  updatedAt.textContent = times.length ? `Updated: ${times.at(-1).replace('T', ' ')}` : 'Updated';
 }
 
 function renderQuickCard(targetId, result) {
@@ -222,9 +220,9 @@ function renderQuickCard(targetId, result) {
   state.className = `quick-state ${risk.key}`;
   state.textContent = risk.label;
   metrics.innerHTML = `
-    <div><span>Волна</span><strong>${formatNumber(result.currentWave, 'м')}</strong></div>
-    <div><span>Ветер</span><strong>${formatNumber(result.windSpeed, 'км/ч')}</strong></div>
-    <div><span>Течение</span><strong>${formatNumber(result.currentVelocity, 'км/ч')}</strong></div>
+    <div><span>Wave</span><strong>${formatNumber(result.currentWave, 'm')}</strong></div>
+    <div><span>Wind</span><strong>${formatNumber(result.windSpeed, 'km/h')}</strong></div>
+    <div><span>Current</span><strong>${formatNumber(result.currentVelocity, 'km/h')}</strong></div>
   `;
 }
 
@@ -259,10 +257,10 @@ function renderRoutes(resultsMap) {
     const node = tpl.content.cloneNode(true);
     node.querySelector('.route-name').textContent = route.name;
     node.querySelector('.route-description').textContent = route.description;
-    node.querySelector('.route-wave').textContent = formatNumber(maxWave, 'м');
-    node.querySelector('.route-wind').textContent = formatNumber(maxWind, 'км/ч');
-    node.querySelector('.route-current').textContent = formatNumber(maxCurrent, 'км/ч');
-    node.querySelector('.route-window').textContent = `${quietHours} из 24 ч`;
+    node.querySelector('.route-wave').textContent = formatNumber(maxWave, 'm');
+    node.querySelector('.route-wind').textContent = formatNumber(maxWind, 'km/h');
+    node.querySelector('.route-current').textContent = formatNumber(maxCurrent, 'km/h');
+    node.querySelector('.route-window').textContent = `${quietHours} of 24 h`;
     const badge = node.querySelector('.route-badge');
     badge.textContent = risk.label;
     badge.classList.add(risk.key);
@@ -335,8 +333,8 @@ function drawHourlyChart(result) {
     { color: '#6fb1ff', values: waves },
     { color: '#ffbf5a', values: winds }
   ], labels, [
-    { color: '#6fb1ff', text: 'Синий — волна (м)' },
-    { color: '#ffbf5a', text: 'Жёлтый — ветер / 10' }
+    { color: '#6fb1ff', text: 'Blue — wave (m)' },
+    { color: '#ffbf5a', text: 'Yellow — wind / 10' }
   ]);
 }
 
@@ -351,10 +349,10 @@ function renderHourlyTable(result) {
   container.innerHTML = times.map((time, i) => `
     <div class="hourly-cell">
       <div class="time">${time.replace('T', ' ').slice(5, 16)}</div>
-      <strong>${formatNumber(waves[i], 'м')}</strong><span>Волна</span>
-      <strong>${formatNumber(winds[i], 'км/ч')}</strong><span>Ветер</span>
-      <strong>${formatNumber(currents[i], 'км/ч')}</strong><span>Течение</span>
-      <strong>${formatNumber(temps[i], '°C')}</strong><span>Вода</span>
+      <strong>${formatNumber(waves[i], 'm')}</strong><span>Wave</span>
+      <strong>${formatNumber(winds[i], 'km/h')}</strong><span>Wind</span>
+      <strong>${formatNumber(currents[i], 'km/h')}</strong><span>Current</span>
+      <strong>${formatNumber(temps[i], '°C')}</strong><span>Water</span>
     </div>
   `).join('');
 }
@@ -365,14 +363,14 @@ function renderHourlyByKey(key) {
   selectedHourlyKey = key;
   drawHourlyChart(result);
   renderHourlyTable(result);
-  document.getElementById('hourlyPointLabel').textContent = `Опорная точка: ${result.point.name}`;
+  document.getElementById('hourlyPointLabel').textContent = `Reference point: ${result.point.name}`;
   document.querySelectorAll('.hourly-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
 }
 
 function updateRefreshNote() {
   const note = document.getElementById('refreshNote');
   const next = new Date(Date.now() + REFRESH_MS);
-  note.textContent = `Следующее автообновление около ${next.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+  note.textContent = `Next auto-refresh around ${next.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 function readHistory() {
@@ -422,8 +420,8 @@ function renderHistory() {
   const historyMeta = document.getElementById('historyMeta');
   if (!history.length) {
     historyTable.className = 'history-table empty-state';
-    historyTable.textContent = 'История ещё не накоплена.';
-    historyMeta.textContent = 'Пока истории нет — появится после нескольких обновлений.';
+    historyTable.textContent = 'No history yet.';
+    historyMeta.textContent = 'No history yet — it will appear after several updates.';
     drawHistoryChart([]);
     return;
   }
@@ -435,12 +433,12 @@ function renderHistory() {
         <div class="time">${item.timestamp.replace('T', ' ').slice(0, 16)}</div>
         <strong class="${riskClass(item.regionRisk)}">${item.regionLabel}</strong>
       </div>
-      <div><span>Волна</span><strong>${formatNumber(item.maxWave, 'м')}</strong></div>
-      <div><span>Ветер</span><strong>${formatNumber(item.maxWind, 'км/ч')}</strong></div>
-      <div><span>Pirita</span><strong>${formatNumber(item.piritaWave, 'м')}</strong></div>
+      <div><span>Wave</span><strong>${formatNumber(item.maxWave, 'm')}</strong></div>
+      <div><span>Wind</span><strong>${formatNumber(item.maxWind, 'km/h')}</strong></div>
+      <div><span>Pirita</span><strong>${formatNumber(item.piritaWave, 'm')}</strong></div>
     </div>
   `).join('');
-  historyMeta.textContent = `Сохранено ${readHistory().length} snapshot(ов) за последние до 72 часов в этом браузере.`;
+  historyMeta.textContent = `Saved ${readHistory().length} snapshot(s) for up to the last 72 hours in this browser.`;
   drawHistoryChart(readHistory());
 }
 
@@ -450,7 +448,7 @@ function drawHistoryChart(history) {
     const { ctx, cssWidth, cssHeight } = setupCanvas(historyCanvas, 220);
     ctx.fillStyle = '#9fb2d7';
     ctx.font = '14px sans-serif';
-    ctx.fillText('История появится после первого snapshot.', 16, cssHeight / 2);
+    ctx.fillText('History will appear after the first snapshot.', 16, cssHeight / 2);
     return;
   }
   const trimmed = history.slice(-24);
@@ -459,8 +457,8 @@ function drawHistoryChart(history) {
     { color: '#6fb1ff', values: trimmed.map((item) => item.maxWave ?? 0) },
     { color: '#a68cff', values: trimmed.map((item) => (item.maxWind ?? 0) / 10) }
   ], labels, [
-    { color: '#6fb1ff', text: 'Синий — max wave' },
-    { color: '#a68cff', text: 'Фиолетовый — max wind / 10' }
+    { color: '#6fb1ff', text: 'Blue — max wave' },
+    { color: '#a68cff', text: 'Purple — max wind / 10' }
   ]);
 }
 
@@ -468,25 +466,25 @@ function renderWarnings(items, meta = {}) {
   const summary = document.getElementById('warningsSummary');
   const list = document.getElementById('warningsList');
   if (!items.length) {
-    summary.textContent = meta.message || 'Предупреждения не найдены. Всё равно проверь официальный сервис перед выходом.';
+    summary.textContent = meta.message || 'No warnings found. Still check the official service before departure.';
     list.className = 'warning-list';
     list.innerHTML = `
       <div class="warning-item warning-fallback">
-        <h4>Нет активных карточек warnings</h4>
-        <p>Открой официальный сервис Transpordiamet и проверь Notices to Mariners перед выходом.</p>
+        <h4>No active warning cards</h4>
+        <p>Open the official Transpordiamet service and check Notices to Mariners before departure.</p>
       </div>
     `;
     return;
   }
 
   const activeCount = items.filter((item) => !item.ended).length;
-  summary.textContent = `${meta.source || 'Warnings proxy'}: ${items.length} карточек, активных сейчас — ${activeCount}.`;
+  summary.textContent = `${meta.source || 'Warnings proxy'}: ${items.length} cards, currently active — ${activeCount}.`;
   list.className = 'warning-list';
   list.innerHTML = items.map((item) => `
     <div class="warning-item ${item.ended ? '' : 'warning-active'}">
       <h4>${item.title}</h4>
-      <div class="warning-meta">${[item.period, item.area].filter(Boolean).join(' • ') || 'Без уточнения периода'}</div>
-      <p>${item.text || 'Смотри официальный источник для полной формулировки.'}</p>
+      <div class="warning-meta">${[item.period, item.area].filter(Boolean).join(' • ') || 'No period specified'}</div>
+      <p>${item.text || 'See the official source for the full wording.'}</p>
     </div>
   `).join('');
 }
@@ -494,7 +492,7 @@ function renderWarnings(items, meta = {}) {
 async function loadWarnings() {
   const list = document.getElementById('warningsList');
   list.className = 'warning-list loading';
-  list.textContent = 'Загрузка…';
+  list.textContent = 'Loading…';
   try {
     const response = await fetch('/api/warnings');
     if (!response.ok) throw new Error(`Proxy status ${response.status}`);
@@ -503,7 +501,7 @@ async function loadWarnings() {
   } catch (error) {
     console.warn('Warnings proxy unavailable', error);
     renderWarnings([], {
-      message: 'Serverless-proxy недоступен. На статическом хостинге без backend используй только официальную страницу warnings.'
+      message: 'Serverless proxy is unavailable. On static hosting without a backend, use only the official warnings page.'
     });
   }
 }
@@ -528,20 +526,20 @@ async function loadAll() {
   const routeStatus = document.getElementById('routeStatus');
   const routeMetrics = document.getElementById('routeMetrics');
   routeStatus.className = 'route-status loading';
-  routeStatus.textContent = 'Собираем прогноз…';
+  routeStatus.textContent = 'Collecting forecast…';
   routeMetrics.innerHTML = '';
   document.getElementById('piritaQuick').className = 'quick-state loading';
-  document.getElementById('piritaQuick').textContent = 'Загрузка…';
+  document.getElementById('piritaQuick').textContent = 'Loading…';
   document.getElementById('oldcityQuick').className = 'quick-state loading';
-  document.getElementById('oldcityQuick').textContent = 'Загрузка…';
+  document.getElementById('oldcityQuick').textContent = 'Loading…';
   try {
     const results = await Promise.all(points.map(fetchMarinePoint));
     renderAll(results);
   } catch (error) {
     console.error(error);
     routeStatus.className = 'route-status bad';
-    routeStatus.textContent = 'Не удалось загрузить marine forecast';
-    routeMetrics.innerHTML = `<div><span>Причина</span><strong>Проверь доступность API / сеть / CORS</strong></div>`;
+    routeStatus.textContent = 'Failed to load marine forecast';
+    routeMetrics.innerHTML = `<div><span>Reason</span><strong>Check API availability / network / CORS</strong></div>`;
   }
 }
 
