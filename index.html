@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tallinn Bay Nav Forecast</title>
-  <meta name="description" content="Navigation forecast for the Tallinn — Pirita — Aegna — Naissaar region with routes, history, and navigational warnings." />
+  <meta name="description" content="Navigation forecast for the Tallinn – Pirita – Aegna – Naissaar area with routes, history, and navigational warnings." />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="shell">
-    <header class="hero panel">
+    <header class="hero panel" id="overview">
       <div class="hero-copy">
         <p class="eyebrow">Tallinn Bay • Pirita Marina • Aegna • Naissaar • Tallinn Old City Marina</p>
         <h1>Navigation Forecast for Tallinn Bay</h1>
@@ -22,22 +22,22 @@
       </div>
     </header>
 
-    <section class="top-grid">
+    <section class="top-grid mobile-section" data-nav="overview">
       <article class="panel status-panel emphasis-panel">
         <div class="panel-head">
-          <h2>Overall Area Status</h2>
+          <h2>Overall area status</h2>
           <span id="updatedAt">Loading…</span>
         </div>
         <div id="routeStatus" class="route-status loading">Collecting forecast…</div>
-        <div id="routeSummary" class="summary-text">Evaluating waves, wind, and currents across key points in the area.</div>
+        <div id="routeSummary" class="summary-text">Evaluating waves, wind, and current across key points in the area.</div>
         <div id="routeMetrics" class="metric-list"></div>
         <div class="refresh-note" id="refreshNote">Auto-refresh enabled</div>
       </article>
 
       <article class="panel vessel-panel">
         <div class="panel-head">
-          <h2>Vessel Profile</h2>
-          <span>Changes evaluation thresholds</span>
+          <h2>Vessel profile</h2>
+          <span>Changes the evaluation thresholds</span>
         </div>
         <div class="segmented" id="vesselMode">
           <button class="seg-btn active" data-mode="rib">RIB / small boat</button>
@@ -46,14 +46,14 @@
         </div>
         <div id="vesselHint" class="vessel-hint"></div>
         <ul class="check-list compact">
-          <li>Go — comfortable conditions for a typical trip.</li>
-          <li>Caution — route is possible but requires conservative decisions.</li>
-          <li>No-go — better to postpone or shorten the route.</li>
+          <li>Go — comfortable window for a typical departure.</li>
+          <li>Caution — route is possible, but requires a conservative decision.</li>
+          <li>No-go — better to postpone departure or shorten the route.</li>
         </ul>
       </article>
     </section>
 
-    <section class="quick-grid">
+    <section class="quick-grid mobile-section" data-nav="overview">
       <article class="panel quick-card highlight">
         <div class="panel-head">
           <h2>Pirita Marina</h2>
@@ -73,18 +73,28 @@
       </article>
     </section>
 
-    <section class="panel map-panel">
+    <section class="panel warnings-panel mobile-section" id="warnings" data-nav="more">
       <div class="panel-head">
-        <h2>Area Map</h2>
+        <div>
+          <h2>Navigational warnings</h2>
+          <span id="warningsSummary">Loading…</span>
+        </div>
+      </div>
+      <div id="warningsList" class="warning-list loading">Loading…</div>
+    </section>
+
+    <section class="panel map-panel mobile-section" id="mapSection" data-nav="map">
+      <div class="panel-head">
+        <h2>Area map</h2>
         <span>Old City • Pirita • Aegna • Naissaar • Rohuneeme</span>
       </div>
       <div id="map"></div>
     </section>
 
-    <section class="panel forecast-panel">
+    <section class="panel forecast-panel mobile-section" id="forecast" data-nav="hourly">
       <div class="panel-head stack-mobile">
         <div>
-          <h2>24-Hour Hourly Forecast</h2>
+          <h2>24-hour hourly forecast</h2>
           <span id="hourlyPointLabel">Reference point: Pirita Marina</span>
         </div>
         <div class="hourly-switch" id="hourlyPointSwitch">
@@ -100,21 +110,22 @@
       <div id="hourlyTable" class="hourly-table"></div>
     </section>
 
-    <section id="routes">
+    <section id="routes" class="mobile-section" data-nav="routes">
       <div class="section-head">
         <h2>Routes</h2>
+        <p>Assessment based on the most sensitive route segments and the number of calm hours.</p>
       </div>
       <div id="routeCards" class="cards route-cards"></div>
     </section>
 
-    <section id="history">
+    <section id="history" class="mobile-section" data-nav="more">
       <div class="section-head">
-        <h2>Snapshot History</h2>
+        <h2>Snapshot history</h2>
       </div>
       <div class="history-grid">
         <article class="panel history-panel">
           <div class="panel-head">
-            <h3>Area Trend</h3>
+            <h3>Area trend</h3>
             <span>Local history</span>
           </div>
           <div class="chart-wrap compact-chart">
@@ -125,7 +136,7 @@
 
         <article class="panel history-panel">
           <div class="panel-head">
-            <h3>Latest Snapshots</h3>
+            <h3>Latest snapshots</h3>
             <span>Up to 12 entries</span>
           </div>
           <div id="historyTable" class="history-table empty-state">No history accumulated yet.</div>
@@ -133,13 +144,21 @@
       </div>
     </section>
 
-    <section>
+    <section class="mobile-section" data-nav="more">
       <div class="section-head">
-        <h2>Forecast Points</h2>
+        <h2>Forecast points</h2>
       </div>
       <div id="cards" class="cards"></div>
     </section>
   </div>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a class="mobile-tab active" href="#overview" data-target="overview">Overview</a>
+    <a class="mobile-tab" href="#routes" data-target="routes">Routes</a>
+    <a class="mobile-tab" href="#forecast" data-target="hourly">Hourly</a>
+    <a class="mobile-tab" href="#mapSection" data-target="map">Map</a>
+    <a class="mobile-tab" href="#history" data-target="more">More</a>
+  </nav>
 
   <template id="cardTemplate">
     <article class="panel point-card">

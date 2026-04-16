@@ -32,15 +32,10 @@ const vesselProfiles = {
 };
 
 const CURRENT_VARS = 'wave_height,sea_surface_temperature,ocean_current_velocity,ocean_current_direction';
-const HOURLY_VARS = [
-  'wave_height',
-  'sea_surface_temperature',
-  'ocean_current_velocity',
-  'ocean_current_direction'
-].join(',');
+const HOURLY_VARS = ['wave_height','sea_surface_temperature','ocean_current_velocity','ocean_current_direction'].join(',');
 const WEATHER_HOURLY = ['wind_speed_10m', 'wind_direction_10m'].join(',');
 const REFRESH_MS = 60 * 60 * 1000;
-const HISTORY_KEY = 'tallinn-bay-nav-forecast-v4-history';
+const HISTORY_KEY = 'tallinn-bay-nav-forecast-v6-history';
 const HISTORY_LIMIT = 72;
 
 let map;
@@ -465,6 +460,7 @@ function drawHistoryChart(history) {
 function renderWarnings(items, meta = {}) {
   const summary = document.getElementById('warningsSummary');
   const list = document.getElementById('warningsList');
+  if (!summary || !list) return;
   if (!items.length) {
     summary.textContent = meta.message || 'No warnings found. Still check the official service before departure.';
     list.className = 'warning-list';
@@ -491,6 +487,7 @@ function renderWarnings(items, meta = {}) {
 
 async function loadWarnings() {
   const list = document.getElementById('warningsList');
+  if (!list) return;
   list.className = 'warning-list loading';
   list.textContent = 'Loading…';
   try {
@@ -501,7 +498,7 @@ async function loadWarnings() {
   } catch (error) {
     console.warn('Warnings proxy unavailable', error);
     renderWarnings([], {
-      message: 'Serverless proxy is unavailable. On static hosting without a backend, use only the official warnings page.'
+      message: 'Serverless proxy is unavailable. On static hosting without a backend, use the official warnings page.'
     });
   }
 }
@@ -551,6 +548,32 @@ function setupAutoRefresh() {
   }, REFRESH_MS);
 }
 
+function bindMobileTabs() {
+  const tabs = [...document.querySelectorAll('.mobile-tab')];
+  if (!tabs.length) return;
+
+  const setActive = (key) => {
+    tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.target === key));
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => setActive(tab.dataset.target));
+  });
+
+  const sections = [...document.querySelectorAll('.mobile-section')];
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) {
+      const key = visible.target.dataset.nav;
+      if (key) setActive(key);
+    }
+  }, { threshold: [0.3, 0.5, 0.7] });
+
+  sections.forEach((section) => observer.observe(section));
+}
+
 function bindUi() {
   document.getElementById('refreshBtn').addEventListener('click', () => {
     loadAll();
@@ -571,6 +594,7 @@ function bindUi() {
     if (allResults.length) renderHourlyByKey(selectedHourlyKey);
     renderHistory();
   });
+  bindMobileTabs();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
