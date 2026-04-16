@@ -1,8 +1,8 @@
 const waypoints = [
-  { key: 'oldcity', name: 'Old City Harbour Exit', type: 'Marina', lat: 59.4446, lon: 24.7546, note: 'Urban harbour exit with coastal shielding in some wind directions.' },
-  { key: 'pirita', name: 'Pirita Marina Exit', type: 'Marina', lat: 59.4714, lon: 24.8350, note: 'Main recreational departure point.' },
-  { key: 'rohuneeme', name: 'Rohuneeme Exposure Sector', type: 'Waypoint', lat: 59.5650, lon: 24.8420, note: 'Reference exposure sector for wind and short-wave awareness.' },
-  { key: 'aegna', name: 'Aegna South Approach', type: 'Approach', lat: 59.5750, lon: 24.7590, note: 'Approach sector into southern Aegna.' },
+  { key: 'oldcity', name: 'Old City Harbour Exit', type: 'Marina', lat: 59.4446, lon: 24.7546, note: 'Urban harbour exit with partial coastal shelter.' },
+  { key: 'pirita', name: 'Pirita Marina Exit', type: 'Marina', lat: 59.4714, lon: 24.8350, note: 'Primary recreational departure point.' },
+  { key: 'northgate', name: 'Tallinn Bay North Gate', type: 'Waypoint', lat: 59.5250, lon: 24.8200, note: 'Operational turning area north of Pirita exit.' },
+  { key: 'aegna', name: 'Aegna South Approach', type: 'Approach', lat: 59.5750, lon: 24.7590, note: 'Southern approach sector toward Aegna.' },
   { key: 'naissaar', name: 'Naissaar South Approach', type: 'Approach', lat: 59.5440, lon: 24.5010, note: 'More exposed approach sector toward Naissaar.' }
 ];
 
@@ -10,85 +10,49 @@ const points = waypoints.map(({ key, name, lat, lon, note }) => ({ key, name, la
 
 const routes = [
   {
-    name: 'Pirita Marina Exit Channel',
-    description: 'Initial departure corridor from Pirita toward open water.',
-    pointKeys: ['pirita', 'rohuneeme'],
-    exposure: 'Moderate exposure after the marina shelter ends.'
+    name: 'Pirita Exit to North Gate',
+    description: 'Departure corridor from Pirita toward the bay gateway.',
+    pointKeys: ['pirita', 'northgate'],
+    exposure: 'Exposure increases after clearing the immediate marina zone.'
   },
   {
-    name: 'Old City Harbour Departure Lane',
-    description: 'Urban harbour departure line before the open bay section.',
-    pointKeys: ['oldcity', 'pirita'],
-    exposure: 'Lower initial exposure, then coastal wind effects.'
+    name: 'Old City Exit to North Gate',
+    description: 'Operational coastal departure route from Old City toward the bay gateway.',
+    pointKeys: ['oldcity', 'pirita', 'northgate'],
+    exposure: 'Urban departure first, then open-bay exposure after Pirita.'
   },
   {
-    name: 'Aegna South Approach',
-    description: 'Structured approach route from Tallinn Bay into the southern side of Aegna.',
-    pointKeys: ['pirita', 'rohuneeme', 'aegna'],
-    exposure: 'Moderate-to-open exposure with route decisions near the approach.'
+    name: 'North Gate to Aegna South Approach',
+    description: 'Fairway-style corridor from the bay gateway to Aegna south approach.',
+    pointKeys: ['northgate', 'aegna'],
+    exposure: 'Moderate open-bay exposure.'
   },
   {
-    name: 'Naissaar South Approach',
-    description: 'Open-water island approach with stronger sensitivity to wind, gusts, and wave build-up.',
-    pointKeys: ['pirita', 'rohuneeme', 'naissaar'],
+    name: 'North Gate to Naissaar South Approach',
+    description: 'More exposed route corridor toward Naissaar approach waters.',
+    pointKeys: ['northgate', 'naissaar'],
     exposure: 'Highest exposure in this dashboard.'
   }
 ];
 
 const webcams = [
-  {
-    name: 'Pirita Beach / Bay Panorama',
-    area: 'Pirita',
-    note: 'Useful for visual wave texture, whitecaps, and nearshore wind feel before departure.',
-    url: 'https://balticlivecam.com/et/cameras/estonia/pirita/pirita-beach/',
-    preview: 'PIRITA'
-  },
-  {
-    name: 'Pirita TOP / Marina View',
-    area: 'Pirita Marina',
-    note: 'Good for checking the immediate marina-adjacent environment.',
-    url: 'https://www.piritatop.ee/kaamera-vaade/',
-    preview: 'TOP'
-  },
-  {
-    name: 'Tallinn Bay Camera Collection',
-    area: 'Tallinn',
-    note: 'General visual cross-check for the bay and skyline conditions.',
-    url: 'https://balticlivecam.com/et/cameras/estonia/tallinn/',
-    preview: 'BAY'
-  },
-  {
-    name: 'Port / Nearby Webcam Fallback',
-    area: 'Old City Harbour',
-    note: 'Fallback harbour-area view if the main source is unavailable.',
-    url: 'https://www.windy.com/webcams/1507414269',
-    preview: 'PORT'
-  }
+  { name: 'Pirita Beach / Bay Panorama', area: 'Pirita', note: 'Useful for visual wave texture and whitecaps.', url: 'https://balticlivecam.com/et/cameras/estonia/pirita/pirita-beach/', preview: 'PIRITA' },
+  { name: 'Pirita TOP / Marina View', area: 'Pirita Marina', note: 'Good for immediate marina-adjacent conditions.', url: 'https://www.piritatop.ee/kaamera-vaade/', preview: 'TOP' },
+  { name: 'Tallinn Bay Camera Collection', area: 'Tallinn', note: 'General skyline and bay visual cross-check.', url: 'https://balticlivecam.com/et/cameras/estonia/tallinn/', preview: 'BAY' },
+  { name: 'Port / Nearby Webcam Fallback', area: 'Old City Harbour', note: 'Fallback harbour-area view if main source is unavailable.', url: 'https://www.windy.com/webcams/1507414269', preview: 'PORT' }
 ];
 
 const vesselProfiles = {
-  rib: {
-    label: 'RIB / small boat',
-    hint: 'Raised thresholds versus earlier versions, but still the strictest decision profile.',
-    thresholds: { goodWave: 0.45, badWave: 0.85, goodWind: 7.5, badWind: 12, goodGust: 11, badGust: 17, goodCurrent: 1.0, badCurrent: 2.0 }
-  },
-  motorboat: {
-    label: 'Motorboat',
-    hint: 'Moderately raised departure thresholds for a typical leisure motorboat.',
-    thresholds: { goodWave: 0.65, badWave: 1.15, goodWind: 9, badWind: 14, goodGust: 13, badGust: 19, goodCurrent: 1.3, badCurrent: 2.4 }
-  },
-  sailboat: {
-    label: 'Sailboat',
-    hint: 'More tolerant to wave height, but gusts still push the route into caution or no-go quickly.',
-    thresholds: { goodWave: 0.8, badWave: 1.4, goodWind: 10, badWind: 16, goodGust: 15, badGust: 22, goodCurrent: 1.4, badCurrent: 2.6 }
-  }
+  rib: { label: 'RIB / small boat', hint: 'Raised thresholds versus earlier versions, but still the strictest profile.', thresholds: { goodWave: 0.45, badWave: 0.85, goodWind: 7.5, badWind: 12, goodGust: 11, badGust: 17, goodCurrent: 1.0, badCurrent: 2.0 } },
+  motorboat: { label: 'Motorboat', hint: 'Moderately raised departure thresholds for a typical leisure motorboat.', thresholds: { goodWave: 0.65, badWave: 1.15, goodWind: 9, badWind: 14, goodGust: 13, badGust: 19, goodCurrent: 1.3, badCurrent: 2.4 } },
+  sailboat: { label: 'Sailboat', hint: 'More tolerant to waves, but gusts still matter strongly.', thresholds: { goodWave: 0.8, badWave: 1.4, goodWind: 10, badWind: 16, goodGust: 15, badGust: 22, goodCurrent: 1.4, badCurrent: 2.6 } }
 };
 
 const CURRENT_VARS = 'wave_height,sea_surface_temperature,ocean_current_velocity,ocean_current_direction';
 const HOURLY_VARS = ['wave_height','sea_surface_temperature','ocean_current_velocity','ocean_current_direction'].join(',');
 const WEATHER_HOURLY = ['wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m'].join(',');
 const REFRESH_MS = 60 * 60 * 1000;
-const HISTORY_KEY = 'tallinn-bay-nav-forecast-v8-history';
+const HISTORY_KEY = 'tallinn-bay-nav-forecast-v9-history';
 const HISTORY_LIMIT = 72;
 
 let map;
@@ -99,11 +63,36 @@ let allResults = [];
 let selectedHourlyKey = 'pirita';
 let selectedMode = 'rib';
 
+function nmDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (d) => d * Math.PI / 180;
+  const R = 6371000;
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δφ = toRad(lat2-lat1), Δλ = toRad(lon2-lon1);
+  const a = Math.sin(Δφ/2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const meters = R * c;
+  return meters / 1852;
+}
+
+function bearingDeg(lat1, lon1, lat2, lon2) {
+  const toRad = (d) => d * Math.PI / 180;
+  const toDeg = (r) => r * 180 / Math.PI;
+  const φ1 = toRad(lat1), φ2 = toRad(lat2), λ1 = toRad(lon1), λ2 = toRad(lon2);
+  const y = Math.sin(λ2-λ1) * Math.cos(φ2);
+  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
 function initMap() {
-  map = L.map('map', { zoomControl: true }).setView([59.525, 24.73], 10);
+  map = L.map('map', { zoomControl: true }).setView([59.52, 24.73], 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: 'Sea marks © OpenSeaMap'
   }).addTo(map);
 
   routes.forEach((route) => {
@@ -111,11 +100,17 @@ function initMap() {
       const p = points.find((x) => x.key === key);
       return [p.lat, p.lon];
     });
-    L.polyline(coords, { weight: 4, opacity: 0.85 }).addTo(map);
+    L.polyline(coords, { weight: 4, opacity: 0.85, color: '#6fb1ff' }).addTo(map);
   });
 
   waypoints.forEach((point) => {
-    const marker = L.marker([point.lat, point.lon]).addTo(map);
+    const marker = L.circleMarker([point.lat, point.lon], {
+      radius: point.type === 'Marina' ? 8 : 6,
+      weight: 2,
+      color: point.type === 'Approach' ? '#ffbf5a' : '#6fb1ff',
+      fillColor: '#07101c',
+      fillOpacity: 1
+    }).addTo(map);
     marker.bindPopup(`<strong>${point.name}</strong><br>${point.type}<br>${point.note}`);
   });
 }
@@ -130,9 +125,27 @@ function renderWaypoints() {
     node.querySelector('.waypoint-note').textContent = wp.note;
     node.querySelector('.waypoint-lat').textContent = wp.lat.toFixed(4);
     node.querySelector('.waypoint-lon').textContent = wp.lon.toFixed(4);
-    const badge = node.querySelector('.waypoint-type');
-    badge.textContent = wp.type;
+    node.querySelector('.waypoint-type').textContent = wp.type;
     container.appendChild(node);
+  });
+}
+
+function renderLegs() {
+  const container = document.getElementById('legCards');
+  const tpl = document.getElementById('legTemplate');
+  container.innerHTML = '';
+
+  routes.forEach((route) => {
+    for (let i = 0; i < route.pointKeys.length - 1; i += 1) {
+      const from = waypoints.find((w) => w.key === route.pointKeys[i]);
+      const to = waypoints.find((w) => w.key === route.pointKeys[i + 1]);
+      const node = tpl.content.cloneNode(true);
+      node.querySelector('.leg-name').textContent = `${from.name} → ${to.name}`;
+      node.querySelector('.leg-route').textContent = route.name;
+      node.querySelector('.leg-bearing').textContent = `${bearingDeg(from.lat, from.lon, to.lat, to.lon).toFixed(0)}°`;
+      node.querySelector('.leg-distance').textContent = `${nmDistance(from.lat, from.lon, to.lat, to.lon).toFixed(2)} NM`;
+      container.appendChild(node);
+    }
   });
 }
 
@@ -162,41 +175,25 @@ function directionToText(deg) {
   return `${dirs[Math.round(deg / 45) % 8]} (${Math.round(deg)}°)`;
 }
 
-function getProfile() {
-  return vesselProfiles[selectedMode];
-}
+function getProfile() { return vesselProfiles[selectedMode]; }
 
 function getRisk(values) {
   const { waveHeight = 0, currentVelocity = 0, windSpeed = 0, windGust = 0 } = values;
   const t = getProfile().thresholds;
-
-  if (waveHeight > t.badWave || currentVelocity > t.badCurrent || windSpeed > t.badWind || windGust > t.badGust) {
-    return { key: 'bad', label: 'No-go' };
-  }
-  if (waveHeight > t.goodWave || currentVelocity > t.goodCurrent || windSpeed > t.goodWind || windGust > t.goodGust) {
-    return { key: 'warn', label: 'Caution' };
-  }
+  if (waveHeight > t.badWave || currentVelocity > t.badCurrent || windSpeed > t.badWind || windGust > t.badGust) return { key: 'bad', label: 'No-go' };
+  if (waveHeight > t.goodWave || currentVelocity > t.goodCurrent || windSpeed > t.goodWind || windGust > t.goodGust) return { key: 'warn', label: 'Caution' };
   return { key: 'good', label: 'Go' };
 }
 
 async function fetchMarinePoint(point) {
   const marineParams = new URLSearchParams({
-    latitude: point.lat,
-    longitude: point.lon,
-    hourly: HOURLY_VARS,
-    current: CURRENT_VARS,
-    forecast_hours: '24',
-    timezone: 'Europe/Tallinn',
-    cell_selection: 'sea'
+    latitude: point.lat, longitude: point.lon, hourly: HOURLY_VARS, current: CURRENT_VARS,
+    forecast_hours: '24', timezone: 'Europe/Tallinn', cell_selection: 'sea'
   });
-
   const weatherParams = new URLSearchParams({
-    latitude: point.lat,
-    longitude: point.lon,
-    hourly: WEATHER_HOURLY,
+    latitude: point.lat, longitude: point.lon, hourly: WEATHER_HOURLY,
     current: 'wind_speed_10m,wind_direction_10m,wind_gusts_10m',
-    forecast_hours: '24',
-    timezone: 'Europe/Tallinn'
+    forecast_hours: '24', timezone: 'Europe/Tallinn'
   });
 
   const [marineResponse, weatherResponse] = await Promise.all([
@@ -250,12 +247,7 @@ async function fetchMarinePoint(point) {
 function renderPointCard(result) {
   const tpl = document.getElementById('cardTemplate');
   const node = tpl.content.cloneNode(true);
-  const risk = getRisk({
-    waveHeight: result.currentWave,
-    currentVelocity: result.currentVelocity,
-    windSpeed: result.windSpeed,
-    windGust: result.windGust
-  });
+  const risk = getRisk({ waveHeight: result.currentWave, currentVelocity: result.currentVelocity, windSpeed: result.windSpeed, windGust: result.windGust });
 
   node.querySelector('.point-name').textContent = result.point.name;
   node.querySelector('.point-coords').textContent = `${result.point.lat.toFixed(3)}, ${result.point.lon.toFixed(3)}`;
@@ -263,14 +255,12 @@ function renderPointCard(result) {
   const badge = node.querySelector('.point-badge');
   badge.textContent = risk.label;
   badge.classList.add(risk.key);
-
   node.querySelector('.wave-now').textContent = formatNumber(result.currentWave, 'm');
   node.querySelector('.wave-max').textContent = formatNumber(result.maxWave24h, 'm');
   node.querySelector('.sea-temp').textContent = formatNumber(result.seaTemp, '°C');
   node.querySelector('.current-speed').textContent = formatNumber(result.currentVelocity, 'km/h');
   node.querySelector('.current-direction').textContent = `Current direction: ${directionToText(result.currentDirection)}`;
   node.querySelector('.wind-line').textContent = `Wind: ${formatNumber(result.windSpeed, 'km/h')} • Gust: ${formatNumber(result.windGust, 'km/h')} • ${directionToText(result.windDirection)}`;
-
   return node;
 }
 
@@ -289,15 +279,13 @@ function renderSummary(results) {
 
   routeStatus.className = `route-status ${risk.key}`;
   routeStatus.textContent = risk.label;
-  routeSummary.textContent = `${getProfile().label}: captain decision engine based on wave, wind, gusts, and current across the bay for the next 24 hours.`;
-
+  routeSummary.textContent = `${getProfile().label}: route-first departure assessment based on wave, wind, gusts, and current across the bay for the next 24 hours.`;
   routeMetrics.innerHTML = `
     <div><span>Max wave 24h</span><strong>${formatNumber(maxWave, 'm')}</strong></div>
     <div><span>Max wind 24h</span><strong>${formatNumber(maxWind, 'km/h')}</strong></div>
     <div><span>Max gust 24h</span><strong>${formatNumber(maxGust, 'km/h')}</strong></div>
     <div><span>Avg water temp</span><strong>${formatNumber(avgTemp, '°C')}</strong></div>
   `;
-
   const times = results.map((r) => r.currentTime).filter(Boolean).sort();
   updatedAt.textContent = times.length ? `Updated: ${times.at(-1).replace('T', ' ')}` : 'Updated';
 }
@@ -305,12 +293,7 @@ function renderSummary(results) {
 function renderQuickCard(targetId, result) {
   const state = document.getElementById(targetId);
   const metrics = document.getElementById(`${targetId}Metrics`);
-  const risk = getRisk({
-    waveHeight: result.currentWave,
-    currentVelocity: result.currentVelocity,
-    windSpeed: result.windSpeed,
-    windGust: result.windGust
-  });
+  const risk = getRisk({ waveHeight: result.currentWave, currentVelocity: result.currentVelocity, windSpeed: result.windSpeed, windGust: result.windGust });
   state.className = `quick-state ${risk.key}`;
   state.textContent = risk.label;
   metrics.innerHTML = `
@@ -362,7 +345,6 @@ function renderRoutes(resultsMap) {
     const badge = node.querySelector('.route-badge');
     badge.textContent = risk.label;
     badge.classList.add(risk.key);
-
     container.appendChild(node);
   });
 }
@@ -400,19 +382,15 @@ function drawLineChart(canvas, lines, labels, legend) {
 
   ctx.fillStyle = '#9fb2d7';
   ctx.font = '12px sans-serif';
-  labels.forEach((label, index) => {
-    if (index % 3 === 0) ctx.fillText(label, x(index) - 12, cssHeight - 8);
-  });
+  labels.forEach((label, index) => { if (index % 3 === 0) ctx.fillText(label, x(index) - 12, cssHeight - 8); });
 
   lines.forEach((line) => {
     ctx.strokeStyle = line.color;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     line.values.forEach((value, index) => {
-      const px = x(index);
-      const py = y(value);
-      if (index === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+      const px = x(index), py = y(value);
+      if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     });
     ctx.stroke();
   });
@@ -475,11 +453,7 @@ function updateRefreshNote() {
 }
 
 function readHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
 }
 
 function saveHistoryEntry(entry) {
@@ -504,18 +478,13 @@ function makeHistoryEntry(results) {
     mode: selectedMode,
     regionRisk: risk.key,
     regionLabel: risk.label,
-    maxWave,
-    maxWind,
-    maxGust,
-    maxCurrent,
+    maxWave, maxWind, maxGust, maxCurrent,
     piritaWave: pirita?.currentWave ?? null,
     piritaWind: pirita?.windSpeed ?? null
   };
 }
 
-function riskClass(key) {
-  return key === 'good' ? 'inline-good' : key === 'warn' ? 'inline-warn' : 'inline-bad';
-}
+function riskClass(key) { return key === 'good' ? 'inline-good' : key === 'warn' ? 'inline-warn' : 'inline-bad'; }
 
 function renderHistory() {
   const history = readHistory().slice(-12).reverse();
@@ -528,14 +497,10 @@ function renderHistory() {
     drawHistoryChart([]);
     return;
   }
-
   historyTable.className = 'history-table';
   historyTable.innerHTML = history.map((item) => `
     <div class="history-row">
-      <div>
-        <div class="time">${item.timestamp.replace('T', ' ').slice(0, 16)}</div>
-        <strong class="${riskClass(item.regionRisk)}">${item.regionLabel}</strong>
-      </div>
+      <div><div class="time">${item.timestamp.replace('T', ' ').slice(0, 16)}</div><strong class="${riskClass(item.regionRisk)}">${item.regionLabel}</strong></div>
       <div><span>Wave</span><strong>${formatNumber(item.maxWave, 'm')}</strong></div>
       <div><span>Wind</span><strong>${formatNumber(item.maxWind, 'km/h')}</strong></div>
       <div><span>Gust</span><strong>${formatNumber(item.maxGust, 'km/h')}</strong></div>
@@ -573,15 +538,9 @@ function renderWarnings(items, meta = {}) {
   if (!items.length) {
     summary.textContent = meta.message || 'No warnings found. Still check the official service before departure.';
     list.className = 'warning-list';
-    list.innerHTML = `
-      <div class="warning-item warning-fallback">
-        <h4>No active warning cards</h4>
-        <p>Open the official Transpordiamet service and check Notices to Mariners before departure.</p>
-      </div>
-    `;
+    list.innerHTML = `<div class="warning-item warning-fallback"><h4>No active warning cards</h4><p>Open the official Transpordiamet service and check Notices to Mariners before departure.</p></div>`;
     return;
   }
-
   const activeCount = items.filter((item) => !item.ended).length;
   summary.textContent = `${meta.source || 'Warnings proxy'}: ${items.length} cards, currently active — ${activeCount}.`;
   list.className = 'warning-list';
@@ -606,9 +565,7 @@ async function loadWarnings() {
     renderWarnings(payload.items || [], payload.meta || {});
   } catch (error) {
     console.warn('Warnings proxy unavailable', error);
-    renderWarnings([], {
-      message: 'Serverless proxy is unavailable. On static hosting without a backend, use the official warnings page.'
-    });
+    renderWarnings([], { message: 'Serverless proxy is unavailable. On static hosting without a backend, use the official warnings page.' });
   }
 }
 
@@ -651,46 +608,28 @@ async function loadAll() {
 
 function setupAutoRefresh() {
   clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => {
-    loadAll();
-    loadWarnings();
-  }, REFRESH_MS);
+  refreshTimer = setInterval(() => { loadAll(); loadWarnings(); }, REFRESH_MS);
 }
 
 function bindMobileTabs() {
   const tabs = [...document.querySelectorAll('.mobile-tab')];
   if (!tabs.length) return;
-
-  const setActive = (key) => {
-    tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.target === key));
-  };
-
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => setActive(tab.dataset.target));
-  });
-
+  const setActive = (key) => tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.target === key));
+  tabs.forEach((tab) => tab.addEventListener('click', () => setActive(tab.dataset.target)));
   const sections = [...document.querySelectorAll('.mobile-section')];
   const observer = new IntersectionObserver((entries) => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
     if (visible) {
       const key = visible.target.dataset.nav;
       if (key) setActive(key);
     }
   }, { threshold: [0.3, 0.5, 0.7] });
-
   sections.forEach((section) => observer.observe(section));
 }
 
 function bindUi() {
-  document.getElementById('refreshBtn').addEventListener('click', () => {
-    loadAll();
-    loadWarnings();
-  });
-  document.querySelectorAll('.hourly-btn').forEach((btn) => {
-    btn.addEventListener('click', () => renderHourlyByKey(btn.dataset.key));
-  });
+  document.getElementById('refreshBtn').addEventListener('click', () => { loadAll(); loadWarnings(); });
+  document.querySelectorAll('.hourly-btn').forEach((btn) => btn.addEventListener('click', () => renderHourlyByKey(btn.dataset.key)));
   document.querySelectorAll('.seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       selectedMode = btn.dataset.mode;
@@ -710,6 +649,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initMap();
   renderWebcams();
   renderWaypoints();
+  renderLegs();
   bindUi();
   document.getElementById('vesselHint').textContent = vesselProfiles[selectedMode].hint;
   renderHistory();
