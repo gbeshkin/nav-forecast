@@ -1,41 +1,94 @@
-const points = [
-  { key: 'oldcity', name: 'Tallinn Old City Marina', lat: 59.4446, lon: 24.7546, note: 'City marina with passenger and tourist traffic.' },
-  { key: 'pirita', name: 'Pirita Marina', lat: 59.4714, lon: 24.8350, note: 'Key departure point for boats and yachts.' },
-  { key: 'aegna', name: 'Aegna South', lat: 59.5750, lon: 24.7590, note: 'Approach to Aegna from Tallinn Bay.' },
-  { key: 'naissaar', name: 'Naissaar South', lat: 59.5440, lon: 24.5010, note: 'Southern Naissaar, sensitive to wind and waves.' },
-  { key: 'rohuneeme', name: 'Rohuneeme', lat: 59.5650, lon: 24.8420, note: 'Northeast edge of the area, useful for overall conditions.' }
+const waypoints = [
+  { key: 'oldcity', name: 'Old City Harbour Exit', type: 'Marina', lat: 59.4446, lon: 24.7546, note: 'Urban harbour exit with coastal shielding in some wind directions.' },
+  { key: 'pirita', name: 'Pirita Marina Exit', type: 'Marina', lat: 59.4714, lon: 24.8350, note: 'Main recreational departure point.' },
+  { key: 'rohuneeme', name: 'Rohuneeme Exposure Sector', type: 'Waypoint', lat: 59.5650, lon: 24.8420, note: 'Reference exposure sector for wind and short-wave awareness.' },
+  { key: 'aegna', name: 'Aegna South Approach', type: 'Approach', lat: 59.5750, lon: 24.7590, note: 'Approach sector into southern Aegna.' },
+  { key: 'naissaar', name: 'Naissaar South Approach', type: 'Approach', lat: 59.5440, lon: 24.5010, note: 'More exposed approach sector toward Naissaar.' }
 ];
 
+const points = waypoints.map(({ key, name, lat, lon, note }) => ({ key, name, lat, lon, note }));
+
 const routes = [
-  { name: 'Pirita → Aegna', description: 'Typical short trip from Pirita to Aegna.', pointKeys: ['pirita', 'aegna'] },
-  { name: 'Old City → Pirita', description: 'Coastal city segment with frequent traffic.', pointKeys: ['oldcity', 'pirita'] },
-  { name: 'Pirita → Naissaar', description: 'More open water. More sensitive to wind and waves.', pointKeys: ['pirita', 'naissaar', 'rohuneeme'] },
-  { name: 'Old City → Aegna', description: 'Route from the city center towards the island across open water.', pointKeys: ['oldcity', 'pirita', 'aegna'] }
+  {
+    name: 'Pirita Marina Exit Channel',
+    description: 'Initial departure corridor from Pirita toward open water.',
+    pointKeys: ['pirita', 'rohuneeme'],
+    exposure: 'Moderate exposure after the marina shelter ends.'
+  },
+  {
+    name: 'Old City Harbour Departure Lane',
+    description: 'Urban harbour departure line before the open bay section.',
+    pointKeys: ['oldcity', 'pirita'],
+    exposure: 'Lower initial exposure, then coastal wind effects.'
+  },
+  {
+    name: 'Aegna South Approach',
+    description: 'Structured approach route from Tallinn Bay into the southern side of Aegna.',
+    pointKeys: ['pirita', 'rohuneeme', 'aegna'],
+    exposure: 'Moderate-to-open exposure with route decisions near the approach.'
+  },
+  {
+    name: 'Naissaar South Approach',
+    description: 'Open-water island approach with stronger sensitivity to wind, gusts, and wave build-up.',
+    pointKeys: ['pirita', 'rohuneeme', 'naissaar'],
+    exposure: 'Highest exposure in this dashboard.'
+  }
+];
+
+const webcams = [
+  {
+    name: 'Pirita Beach / Bay Panorama',
+    area: 'Pirita',
+    note: 'Useful for visual wave texture, whitecaps, and nearshore wind feel before departure.',
+    url: 'https://balticlivecam.com/et/cameras/estonia/pirita/pirita-beach/',
+    preview: 'PIRITA'
+  },
+  {
+    name: 'Pirita TOP / Marina View',
+    area: 'Pirita Marina',
+    note: 'Good for checking the immediate marina-adjacent environment.',
+    url: 'https://www.piritatop.ee/kaamera-vaade/',
+    preview: 'TOP'
+  },
+  {
+    name: 'Tallinn Bay Camera Collection',
+    area: 'Tallinn',
+    note: 'General visual cross-check for the bay and skyline conditions.',
+    url: 'https://balticlivecam.com/et/cameras/estonia/tallinn/',
+    preview: 'BAY'
+  },
+  {
+    name: 'Port / Nearby Webcam Fallback',
+    area: 'Old City Harbour',
+    note: 'Fallback harbour-area view if the main source is unavailable.',
+    url: 'https://www.windy.com/webcams/1507414269',
+    preview: 'PORT'
+  }
 ];
 
 const vesselProfiles = {
   rib: {
     label: 'RIB / small boat',
-    hint: 'The strictest profile. Suitable for a small boat, a casual trip, and a more conservative assessment.',
-    thresholds: { goodWave: 0.35, badWave: 0.75, goodWind: 6, badWind: 10, goodCurrent: 0.9, badCurrent: 1.8 }
+    hint: 'Raised thresholds versus earlier versions, but still the strictest decision profile.',
+    thresholds: { goodWave: 0.45, badWave: 0.85, goodWind: 7.5, badWind: 12, goodGust: 11, badGust: 17, goodCurrent: 1.0, badCurrent: 2.0 }
   },
   motorboat: {
     label: 'Motorboat',
-    hint: 'Balanced mode for a typical motor vessel in good weather.',
-    thresholds: { goodWave: 0.5, badWave: 1.0, goodWind: 7.5, badWind: 12, goodCurrent: 1.2, badCurrent: 2.2 }
+    hint: 'Moderately raised departure thresholds for a typical leisure motorboat.',
+    thresholds: { goodWave: 0.65, badWave: 1.15, goodWind: 9, badWind: 14, goodGust: 13, badGust: 19, goodCurrent: 1.3, badCurrent: 2.4 }
   },
   sailboat: {
     label: 'Sailboat',
-    hint: 'A bit more tolerant to waves, but strong wind still quickly shifts conditions to caution / no-go.',
-    thresholds: { goodWave: 0.65, badWave: 1.25, goodWind: 8.5, badWind: 14, goodCurrent: 1.2, badCurrent: 2.4 }
+    hint: 'More tolerant to wave height, but gusts still push the route into caution or no-go quickly.',
+    thresholds: { goodWave: 0.8, badWave: 1.4, goodWind: 10, badWind: 16, goodGust: 15, badGust: 22, goodCurrent: 1.4, badCurrent: 2.6 }
   }
 };
 
 const CURRENT_VARS = 'wave_height,sea_surface_temperature,ocean_current_velocity,ocean_current_direction';
 const HOURLY_VARS = ['wave_height','sea_surface_temperature','ocean_current_velocity','ocean_current_direction'].join(',');
-const WEATHER_HOURLY = ['wind_speed_10m', 'wind_direction_10m'].join(',');
+const WEATHER_HOURLY = ['wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m'].join(',');
 const REFRESH_MS = 60 * 60 * 1000;
-const HISTORY_KEY = 'tallinn-bay-nav-forecast-v6-history';
+const HISTORY_KEY = 'tallinn-bay-nav-forecast-v8-history';
 const HISTORY_LIMIT = 72;
 
 let map;
@@ -61,9 +114,40 @@ function initMap() {
     L.polyline(coords, { weight: 4, opacity: 0.85 }).addTo(map);
   });
 
-  points.forEach((point) => {
+  waypoints.forEach((point) => {
     const marker = L.marker([point.lat, point.lon]).addTo(map);
-    marker.bindPopup(`<strong>${point.name}</strong><br>${point.note}`);
+    marker.bindPopup(`<strong>${point.name}</strong><br>${point.type}<br>${point.note}`);
+  });
+}
+
+function renderWaypoints() {
+  const container = document.getElementById('waypointCards');
+  const tpl = document.getElementById('waypointTemplate');
+  container.innerHTML = '';
+  waypoints.forEach((wp) => {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('.waypoint-name').textContent = wp.name;
+    node.querySelector('.waypoint-note').textContent = wp.note;
+    node.querySelector('.waypoint-lat').textContent = wp.lat.toFixed(4);
+    node.querySelector('.waypoint-lon').textContent = wp.lon.toFixed(4);
+    const badge = node.querySelector('.waypoint-type');
+    badge.textContent = wp.type;
+    container.appendChild(node);
+  });
+}
+
+function renderWebcams() {
+  const container = document.getElementById('webcamCards');
+  const tpl = document.getElementById('webcamTemplate');
+  container.innerHTML = '';
+  webcams.forEach((cam) => {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('.webcam-name').textContent = cam.name;
+    node.querySelector('.webcam-area').textContent = cam.area;
+    node.querySelector('.webcam-note').textContent = cam.note;
+    node.querySelector('.webcam-link').href = cam.url;
+    node.querySelector('.webcam-preview').textContent = cam.preview;
+    container.appendChild(node);
   });
 }
 
@@ -83,13 +167,13 @@ function getProfile() {
 }
 
 function getRisk(values) {
-  const { waveHeight = 0, currentVelocity = 0, windSpeed = 0 } = values;
+  const { waveHeight = 0, currentVelocity = 0, windSpeed = 0, windGust = 0 } = values;
   const t = getProfile().thresholds;
 
-  if (waveHeight > t.badWave || currentVelocity > t.badCurrent || windSpeed > t.badWind) {
+  if (waveHeight > t.badWave || currentVelocity > t.badCurrent || windSpeed > t.badWind || windGust > t.badGust) {
     return { key: 'bad', label: 'No-go' };
   }
-  if (waveHeight > t.goodWave || currentVelocity > t.goodCurrent || windSpeed > t.goodWind) {
+  if (waveHeight > t.goodWave || currentVelocity > t.goodCurrent || windSpeed > t.goodWind || windGust > t.goodGust) {
     return { key: 'warn', label: 'Caution' };
   }
   return { key: 'good', label: 'Go' };
@@ -110,7 +194,7 @@ async function fetchMarinePoint(point) {
     latitude: point.lat,
     longitude: point.lon,
     hourly: WEATHER_HOURLY,
-    current: 'wind_speed_10m,wind_direction_10m',
+    current: 'wind_speed_10m,wind_direction_10m,wind_gusts_10m',
     forecast_hours: '24',
     timezone: 'Europe/Tallinn'
   });
@@ -132,6 +216,7 @@ async function fetchMarinePoint(point) {
   const waveSeries = hourly.wave_height || [];
   const currentSeries = hourly.ocean_current_velocity || [];
   const windSeries = hourlyWeather.wind_speed_10m || [];
+  const gustSeries = hourlyWeather.wind_gusts_10m || [];
 
   return {
     point,
@@ -142,7 +227,9 @@ async function fetchMarinePoint(point) {
     currentDirection: current.ocean_current_direction,
     windSpeed: currentWeather.wind_speed_10m,
     windDirection: currentWeather.wind_direction_10m,
+    windGust: currentWeather.wind_gusts_10m,
     maxWind24h: windSeries.length ? Math.max(...windSeries.filter((v) => typeof v === 'number')) : null,
+    maxGust24h: gustSeries.length ? Math.max(...gustSeries.filter((v) => typeof v === 'number')) : null,
     maxCurrent24h: currentSeries.length ? Math.max(...currentSeries.filter((v) => typeof v === 'number')) : null,
     currentTime: current.time || currentWeather.time || null,
     marineHourly: {
@@ -154,7 +241,8 @@ async function fetchMarinePoint(point) {
     weatherHourly: {
       time: hourlyWeather.time || [],
       wind_speed_10m: hourlyWeather.wind_speed_10m || [],
-      wind_direction_10m: hourlyWeather.wind_direction_10m || []
+      wind_direction_10m: hourlyWeather.wind_direction_10m || [],
+      wind_gusts_10m: hourlyWeather.wind_gusts_10m || []
     }
   };
 }
@@ -162,7 +250,12 @@ async function fetchMarinePoint(point) {
 function renderPointCard(result) {
   const tpl = document.getElementById('cardTemplate');
   const node = tpl.content.cloneNode(true);
-  const risk = getRisk({ waveHeight: result.currentWave, currentVelocity: result.currentVelocity, windSpeed: result.windSpeed });
+  const risk = getRisk({
+    waveHeight: result.currentWave,
+    currentVelocity: result.currentVelocity,
+    windSpeed: result.windSpeed,
+    windGust: result.windGust
+  });
 
   node.querySelector('.point-name').textContent = result.point.name;
   node.querySelector('.point-coords').textContent = `${result.point.lat.toFixed(3)}, ${result.point.lon.toFixed(3)}`;
@@ -176,7 +269,7 @@ function renderPointCard(result) {
   node.querySelector('.sea-temp').textContent = formatNumber(result.seaTemp, '°C');
   node.querySelector('.current-speed').textContent = formatNumber(result.currentVelocity, 'km/h');
   node.querySelector('.current-direction').textContent = `Current direction: ${directionToText(result.currentDirection)}`;
-  node.querySelector('.wind-line').textContent = `Wind: ${formatNumber(result.windSpeed, 'km/h')} • ${directionToText(result.windDirection)}`;
+  node.querySelector('.wind-line').textContent = `Wind: ${formatNumber(result.windSpeed, 'km/h')} • Gust: ${formatNumber(result.windGust, 'km/h')} • ${directionToText(result.windDirection)}`;
 
   return node;
 }
@@ -190,18 +283,19 @@ function renderSummary(results) {
   const maxWave = Math.max(...results.map((r) => r.maxWave24h ?? 0));
   const maxCurrent = Math.max(...results.map((r) => r.maxCurrent24h ?? 0));
   const maxWind = Math.max(...results.map((r) => r.maxWind24h ?? 0));
+  const maxGust = Math.max(...results.map((r) => r.maxGust24h ?? 0));
   const avgTemp = results.reduce((acc, r) => acc + (r.seaTemp ?? 0), 0) / Math.max(results.length, 1);
-  const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind });
+  const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind, windGust: maxGust });
 
   routeStatus.className = `route-status ${risk.key}`;
   routeStatus.textContent = risk.label;
-  routeSummary.textContent = `${getProfile().label}: overall area assessment based on the maximum wave, wind, and current over the next 24 hours.`;
+  routeSummary.textContent = `${getProfile().label}: captain decision engine based on wave, wind, gusts, and current across the bay for the next 24 hours.`;
 
   routeMetrics.innerHTML = `
     <div><span>Max wave 24h</span><strong>${formatNumber(maxWave, 'm')}</strong></div>
     <div><span>Max wind 24h</span><strong>${formatNumber(maxWind, 'km/h')}</strong></div>
-    <div><span>Max current 24h</span><strong>${formatNumber(maxCurrent, 'km/h')}</strong></div>
-    <div><span>Average water temp</span><strong>${formatNumber(avgTemp, '°C')}</strong></div>
+    <div><span>Max gust 24h</span><strong>${formatNumber(maxGust, 'km/h')}</strong></div>
+    <div><span>Avg water temp</span><strong>${formatNumber(avgTemp, '°C')}</strong></div>
   `;
 
   const times = results.map((r) => r.currentTime).filter(Boolean).sort();
@@ -211,7 +305,12 @@ function renderSummary(results) {
 function renderQuickCard(targetId, result) {
   const state = document.getElementById(targetId);
   const metrics = document.getElementById(`${targetId}Metrics`);
-  const risk = getRisk({ waveHeight: result.currentWave, currentVelocity: result.currentVelocity, windSpeed: result.windSpeed });
+  const risk = getRisk({
+    waveHeight: result.currentWave,
+    currentVelocity: result.currentVelocity,
+    windSpeed: result.windSpeed,
+    windGust: result.windGust
+  });
   state.className = `quick-state ${risk.key}`;
   state.textContent = risk.label;
   metrics.innerHTML = `
@@ -228,8 +327,9 @@ function getQuietHours(related) {
     const ok = related.every((r) => {
       const wv = r.marineHourly.wave_height?.[i];
       const wd = r.weatherHourly.wind_speed_10m?.[i];
+      const wg = r.weatherHourly.wind_gusts_10m?.[i];
       const cv = r.marineHourly.ocean_current_velocity?.[i];
-      return (wv ?? 999) <= t.goodWave && (wd ?? 999) <= t.goodWind && (cv ?? 999) <= t.goodCurrent;
+      return (wv ?? 999) <= t.goodWave && (wd ?? 999) <= t.goodWind && (wg ?? 999) <= t.goodGust && (cv ?? 999) <= t.goodCurrent;
     });
     perHour.push(ok);
   }
@@ -238,27 +338,31 @@ function getQuietHours(related) {
 
 function renderRoutes(resultsMap) {
   const container = document.getElementById('routeCards');
-  container.innerHTML = '';
   const tpl = document.getElementById('routeTemplate');
+  container.innerHTML = '';
 
   routes.forEach((route) => {
     const related = route.pointKeys.map((key) => resultsMap.get(key)).filter(Boolean);
     const maxWave = Math.max(...related.map((r) => r.maxWave24h ?? 0));
     const maxCurrent = Math.max(...related.map((r) => r.maxCurrent24h ?? 0));
     const maxWind = Math.max(...related.map((r) => r.maxWind24h ?? 0));
+    const maxGust = Math.max(...related.map((r) => r.maxGust24h ?? 0));
     const quietHours = getQuietHours(related);
-    const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind });
+    const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind, windGust: maxGust });
 
     const node = tpl.content.cloneNode(true);
     node.querySelector('.route-name').textContent = route.name;
     node.querySelector('.route-description').textContent = route.description;
+    node.querySelector('.route-waypoints').textContent = `Waypoints: ${route.pointKeys.join(' → ')}`;
     node.querySelector('.route-wave').textContent = formatNumber(maxWave, 'm');
     node.querySelector('.route-wind').textContent = formatNumber(maxWind, 'km/h');
-    node.querySelector('.route-current').textContent = formatNumber(maxCurrent, 'km/h');
+    node.querySelector('.route-gust').textContent = formatNumber(maxGust, 'km/h');
     node.querySelector('.route-window').textContent = `${quietHours} of 24 h`;
+    node.querySelector('.route-exposure').textContent = route.exposure;
     const badge = node.querySelector('.route-badge');
     badge.textContent = risk.label;
     badge.classList.add(risk.key);
+
     container.appendChild(node);
   });
 }
@@ -338,6 +442,7 @@ function renderHourlyTable(result) {
   const waves = (result.marineHourly.wave_height || []).slice(0, 6);
   const temps = (result.marineHourly.sea_surface_temperature || []).slice(0, 6);
   const winds = (result.weatherHourly.wind_speed_10m || []).slice(0, 6);
+  const gusts = (result.weatherHourly.wind_gusts_10m || []).slice(0, 6);
   const currents = (result.marineHourly.ocean_current_velocity || []).slice(0, 6);
   const times = (result.marineHourly.time || []).slice(0, 6);
 
@@ -346,6 +451,7 @@ function renderHourlyTable(result) {
       <div class="time">${time.replace('T', ' ').slice(5, 16)}</div>
       <strong>${formatNumber(waves[i], 'm')}</strong><span>Wave</span>
       <strong>${formatNumber(winds[i], 'km/h')}</strong><span>Wind</span>
+      <strong>${formatNumber(gusts[i], 'km/h')}</strong><span>Gust</span>
       <strong>${formatNumber(currents[i], 'km/h')}</strong><span>Current</span>
       <strong>${formatNumber(temps[i], '°C')}</strong><span>Water</span>
     </div>
@@ -389,8 +495,9 @@ function saveHistoryEntry(entry) {
 function makeHistoryEntry(results) {
   const maxWave = Math.max(...results.map((r) => r.maxWave24h ?? 0));
   const maxWind = Math.max(...results.map((r) => r.maxWind24h ?? 0));
+  const maxGust = Math.max(...results.map((r) => r.maxGust24h ?? 0));
   const maxCurrent = Math.max(...results.map((r) => r.maxCurrent24h ?? 0));
-  const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind });
+  const risk = getRisk({ waveHeight: maxWave, currentVelocity: maxCurrent, windSpeed: maxWind, windGust: maxGust });
   const pirita = results.find((r) => r.point.key === 'pirita');
   return {
     timestamp: new Date().toISOString(),
@@ -399,6 +506,7 @@ function makeHistoryEntry(results) {
     regionLabel: risk.label,
     maxWave,
     maxWind,
+    maxGust,
     maxCurrent,
     piritaWave: pirita?.currentWave ?? null,
     piritaWind: pirita?.windSpeed ?? null
@@ -430,6 +538,7 @@ function renderHistory() {
       </div>
       <div><span>Wave</span><strong>${formatNumber(item.maxWave, 'm')}</strong></div>
       <div><span>Wind</span><strong>${formatNumber(item.maxWind, 'km/h')}</strong></div>
+      <div><span>Gust</span><strong>${formatNumber(item.maxGust, 'km/h')}</strong></div>
       <div><span>Pirita</span><strong>${formatNumber(item.piritaWave, 'm')}</strong></div>
     </div>
   `).join('');
@@ -599,6 +708,8 @@ function bindUi() {
 
 window.addEventListener('DOMContentLoaded', () => {
   initMap();
+  renderWebcams();
+  renderWaypoints();
   bindUi();
   document.getElementById('vesselHint').textContent = vesselProfiles[selectedMode].hint;
   renderHistory();
