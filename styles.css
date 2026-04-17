@@ -8,11 +8,9 @@
   --warn: #ffbf5a;
   --bad: #ff6a78;
   --accent: #6fb1ff;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text);
@@ -37,37 +35,28 @@ h1,h2,h3,p { margin-top: 0; }
 h1 { font-size: clamp(30px, 5vw, 50px); line-height: 1.03; margin-bottom: 14px; }
 h2 { font-size: 22px; margin-bottom: 0; }
 h3 { font-size: 18px; margin-bottom: 0; }
-.lead { color: var(--muted); line-height: 1.6; margin-bottom: 0; }
-button, a { font: inherit; }
-button, .hero-actions a, .seg-btn, .hourly-btn, .mobile-tab, .webcam-link, .inline-link, .ref-card {
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  padding: 12px 16px;
-  border-radius: 14px;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: 700;
-}
+.lead, .mini-note, .point-coords, .point-note, .refresh-note, .summary-text, .vessel-hint, .mini-status-label, .fairway-region { color: var(--muted); }
 .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.captain-grid, .history-grid { display: grid; gap: 18px; margin-top: 18px; }
-.captain-grid { grid-template-columns: 1.4fr 1fr 1fr; }
-.metric-list, .metric-grid, .mini-grid, .cards, .reference-grid { display: grid; gap: 12px; }
+button, a {
+  font: inherit; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--text);
+  padding: 12px 16px; border-radius: 14px; text-decoration: none; cursor: pointer; font-weight: 700;
+}
+.top-grid, .cards, .metric-list, .metric-grid, .mini-grid {
+  display: grid; gap: 12px;
+}
+.top-grid { grid-template-columns: 1.3fr 1fr; margin-top: 18px; }
+.cards { grid-template-columns: repeat(3, 1fr); }
+.fairway-cards, .leg-cards { grid-template-columns: repeat(2, 1fr); }
 .metric-list { grid-template-columns: repeat(4, 1fr); }
 .metric-grid { grid-template-columns: repeat(4, 1fr); }
 .mini-grid { grid-template-columns: repeat(3, 1fr); }
-.cards { grid-template-columns: repeat(3, 1fr); }
-.route-cards, .webcam-cards, .waypoint-cards, .leg-cards { grid-template-columns: repeat(2, 1fr); }
-.history-grid { grid-template-columns: 1fr 1fr; }
-.reference-grid { grid-template-columns: repeat(3, 1fr); }
-.metric-list div, .metric-grid div, .mini-grid div, .hourly-cell, .history-row, .warning-item, .webcam-card, .ref-card {
+.metric-list div, .metric-grid div, .mini-grid div, .fairway-card, .leg-card, .hourly-cell {
   padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.02);
 }
 .metric-list span, .metric-grid span, .mini-grid span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
 .metric-list strong, .metric-grid strong, .mini-grid strong { font-size: 20px; }
 .panel-head, .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 16px; }
 .section-head { margin: 28px 0 14px; align-items: end; }
-.mini-note, .panel-head span, .section-head p, .point-coords, .point-note, .refresh-note, .summary-text, .vessel-hint, .mini-status-label { color: var(--muted); }
 .route-status, .quick-state {
   padding: 16px 18px; border-radius: 18px; font-size: 24px; font-weight: 900; margin-bottom: 12px; border: 1px solid var(--line);
 }
@@ -75,74 +64,32 @@ button, .hero-actions a, .seg-btn, .hourly-btn, .mobile-tab, .webcam-link, .inli
 .route-status.good, .quick-state.good { background: rgba(39,195,127,.14); color: #bbffd8; }
 .route-status.warn, .quick-state.warn { background: rgba(255,191,90,.14); color: #ffe0a8; }
 .route-status.bad, .quick-state.bad { background: rgba(255,106,120,.14); color: #ffd1d7; }
-.route-status.loading, .quick-state.loading, .warning-list.loading { background: rgba(255,255,255,.04); color: var(--muted); }
+.route-status.loading, .quick-state.loading { background: rgba(255,255,255,.04); color: var(--muted); }
 .segmented, .hourly-switch { display: flex; gap: 10px; flex-wrap: wrap; }
-.seg-btn.active, .hourly-btn.active, .mobile-tab.active { background: linear-gradient(180deg, rgba(111,177,255,.24), rgba(111,177,255,.08)); border-color: rgba(111,177,255,.48); }
-.warning-list { display: grid; gap: 12px; }
-.warning-item.warning-active { border-color: rgba(255,191,90,0.28); }
-.warning-item.warning-fallback { border-style: dashed; }
-.legend-inline { display: inline-flex; gap: 10px; flex-wrap: wrap; color: var(--muted); }
-#map { height: 480px; border-radius: 18px; overflow: hidden; }
-.chart-wrap { border: 1px solid var(--line); border-radius: 18px; padding: 12px; background: rgba(255,255,255,.02); }
-.compact-chart { min-height: 210px; }
-#hourlyChart, #historyChart { width: 100%; display: block; }
-.hourly-table { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 14px; }
-.hourly-cell .time, .history-row .time { color: var(--muted); margin-bottom: 8px; font-size: 13px; }
-.history-table { display: grid; gap: 10px; }
-.history-row { display: grid; grid-template-columns: 1.4fr .8fr .8fr .8fr .8fr; gap: 12px; align-items: center; }
-.empty-state { color: var(--muted); }
-strong.inline-good { color: #bbffd8; }
-strong.inline-warn { color: #ffe0a8; }
-strong.inline-bad { color: #ffd1d7; }
+.seg-btn.active, .hourly-btn.active { background: linear-gradient(180deg, rgba(111,177,255,.24), rgba(111,177,255,.08)); border-color: rgba(111,177,255,.48); }
 .badge {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: 13px; font-weight: 800;
 }
-.badge.good { color: #bbffd8; background: rgba(39,195,127,.12); }
-.badge.warn { color: #ffe0a8; background: rgba(255,191,90,.12); }
-.badge.bad { color: #ffd1d7; background: rgba(255,106,120,.12); }
-.check-list { padding-left: 18px; margin: 0; color: var(--muted); line-height: 1.7; }
-.webcam-preview {
-  height: 120px; border-radius: 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; font-weight: 900; letter-spacing: .18em;
-  color: rgba(255,255,255,.9); background: linear-gradient(135deg, rgba(111,177,255,.36), rgba(15,33,58,.65)), radial-gradient(circle at top left, rgba(255,255,255,.18), transparent 45%);
-}
-.route-footer, .disclaimer { margin-top: 12px; color: var(--muted); }
-.captain-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--accent); }
-.mobile-nav { display: none; }
+#map { height: 500px; border-radius: 18px; overflow: hidden; }
+.chart-wrap { border: 1px solid var(--line); border-radius: 18px; padding: 12px; background: rgba(255,255,255,.02); }
+#hourlyChart { width: 100%; display: block; }
+.hourly-table { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 14px; }
+.hourly-cell .time { color: var(--muted); margin-bottom: 8px; font-size: 13px; }
+.reference-panel, .map-panel, .forecast-panel { margin-top: 18px; }
 
 @media (max-width: 1080px) {
-  .captain-grid, .history-grid, .cards, .route-cards, .webcam-cards, .waypoint-cards, .leg-cards, .metric-list, .metric-grid, .mini-grid, .reference-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .top-grid, .cards, .fairway-cards, .leg-cards, .metric-list, .metric-grid, .mini-grid { grid-template-columns: 1fr 1fr; }
   .hero { flex-direction: column; }
   .hourly-table { grid-template-columns: repeat(3, 1fr); }
 }
-
 @media (max-width: 720px) {
-  .shell { padding: 16px; padding-bottom: 106px; }
-  .captain-grid, .history-grid, .cards, .route-cards, .webcam-cards, .waypoint-cards, .leg-cards, .metric-list, .metric-grid, .mini-grid, .hourly-table, .reference-grid {
-    grid-template-columns: 1fr;
-  }
-  .history-row { grid-template-columns: 1fr; }
+  .shell { padding: 16px; }
+  .top-grid, .cards, .fairway-cards, .leg-cards, .metric-list, .metric-grid, .mini-grid, .hourly-table { grid-template-columns: 1fr; }
   .panel-head, .section-head { flex-direction: column; align-items: flex-start; }
+  .hero { padding: 22px; }
   #map { height: 320px; }
   .route-status { font-size: 20px; }
   .quick-state { font-size: 16px; }
-  .hero { padding: 22px; }
-  .segmented, .hourly-switch { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
-  .hero-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-  button, .hero-actions a, .seg-btn, .hourly-btn, .webcam-link { width: 100%; text-align: center; }
-  .mobile-nav {
-    position: fixed; left: 12px; right: 12px; bottom: calc(10px + var(--safe-bottom)); z-index: 50; display: grid;
-    grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 20px;
-    background: rgba(8, 17, 31, 0.92); backdrop-filter: blur(18px); box-shadow: 0 16px 40px rgba(0,0,0,.35);
-  }
-  .mobile-tab { min-height: 54px; padding: 8px 6px; border-radius: 14px; font-size: 11px; font-weight: 800; text-align: center; display: flex; align-items: center; justify-content: center; }
-}
-
-@media (max-width: 420px) {
-  .hero-actions { grid-template-columns: 1fr; }
-  .segmented, .hourly-switch { grid-template-columns: 1fr; }
-  .mobile-nav { left: 8px; right: 8px; gap: 6px; padding: 8px; }
-  .mobile-tab { font-size: 10px; min-height: 50px; }
-  #map { height: 260px; }
+  .segmented, .hourly-switch, .hero-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  button, .hero-actions a, .seg-btn, .hourly-btn { width: 100%; text-align: center; }
 }
